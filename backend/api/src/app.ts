@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import pino from 'pino';
 import { pinoHttp } from 'pino-http';
 import { env } from './config/env.js';
+import { v1Router } from './routes/v1.js';
 
 const logger = pino({ level: env.NODE_ENV === 'production' ? 'info' : 'debug' });
 
@@ -24,5 +25,7 @@ app.get('/api/v1/health', (request, response) => {
     meta: { requestId: request.id, timestamp: new Date().toISOString() },
   });
 });
+
+app.use('/api/v1', v1Router);
 
 app.use((_request, response) => response.status(404).json({ success: false, message: 'Not found' }));

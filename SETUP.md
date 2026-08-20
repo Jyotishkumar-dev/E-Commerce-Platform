@@ -15,7 +15,12 @@ cp apps/web/.env.example apps/web/.env
 docker compose up -d
 pnpm install
 pnpm --filter @smart-commerce/api prisma:generate
+pnpm --filter @smart-commerce/api prisma:migrate
+pnpm --filter @smart-commerce/api prisma:seed
 pnpm dev
 ```
 
 Web: `http://localhost:5173` · API health: `http://localhost:5000/api/v1/health`
+
+The seed creates a demo seller and an admin account:
+`admin@smartcommerce.local` / `Password123!`.
