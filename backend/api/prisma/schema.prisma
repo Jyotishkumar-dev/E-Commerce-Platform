@@ -24,6 +24,8 @@ model User {
   products     Product[]
   cart         Cart?
   orders       Order[]
+  refreshTokens RefreshToken[]
+  wishlist      WishlistItem[]
 }
 
 model Product {
@@ -42,8 +44,31 @@ model Product {
   stock       Int      @default(0)
   cartItems   CartItem[]
   orderItems  OrderItem[]
+  wishlistedBy WishlistItem[]
 
   @@index([sellerId, isActive])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
 }
 
 model Cart {

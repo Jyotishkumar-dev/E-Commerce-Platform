@@ -10,8 +10,8 @@
 ## Start locally
 
 ```sh
-cp apps/api/.env.example apps/api/.env
-cp apps/web/.env.example apps/web/.env
+cp backend/api/.env.example backend/api/.env
+cp frontend/web/.env.example frontend/web/.env
 docker compose up -d
 pnpm install
 pnpm --filter @smart-commerce/api prisma:generate

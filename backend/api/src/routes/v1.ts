@@ -1,19 +1,14 @@
 import bcrypt from 'bcryptjs';
 import { Router } from 'express';
-import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-import { env } from '../config/env.js';
 import { allowRoles, authenticate } from '../middlewares/auth.js';
 import { prisma } from '../lib/prisma.js';
 import { ok } from '../utils/response.js';
+import { createRefreshSession, endRefreshSession, issueAccessToken, readCookie, rotateRefreshSession } from '../utils/session.js';
 
 const router = Router();
 const authSchema = z.object({ email: z.string().email(), password: z.string().min(8), name: z.string().trim().min(2).max(80).optional() });
 const productSelect = { id: true, title: true, description: true, priceCents: true, currency: true, category: true, imageUrl: true, stock: true, seller: { select: { name: true } } } as const;
-
-function issueToken(user: { id: string; email: string; role: 'CUSTOMER' | 'SELLER' | 'ADMIN' }) {
-  return jwt.sign({ sub: user.id, email: user.email, role: user.role }, env.JWT_ACCESS_SECRET, { expiresIn: '15m' });
-}
 
 function invalid(response: Parameters<typeof ok>[0], message: string) {
   return response.status(422).json({ success: false, statusCode: 422, message });
@@ -25,7 +20,8 @@ router.post('/auth/register', async (request, response) => {
   const existing = await prisma.user.findUnique({ where: { email: parsed.data.email } });
   if (existing) return response.status(409).json({ success: false, message: 'An account with that email already exists.' });
   const user = await prisma.user.create({ data: { email: parsed.data.email, name: parsed.data.name, passwordHash: await bcrypt.hash(parsed.data.password, 12) } });
-  return ok(response, request, { user: { id: user.id, email: user.email, name: user.name, role: user.role }, accessToken: issueToken(user) }, 'Account created', 201);
+  await createRefreshSession(response, user.id);
+  return ok(response, request, { user: { id: user.id, email: user.email, name: user.name, role: user.role }, accessToken: issueAccessToken(user) }, 'Account created', 201);
 });
 
 router.post('/auth/login', async (request, response) => {
@@ -33,7 +29,25 @@ router.post('/auth/login', async (request, response) => {
   if (!parsed.success) return invalid(response, 'Enter your email and password.');
   const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
   if (!user || !(await bcrypt.compare(parsed.data.password, user.passwordHash))) return response.status(401).json({ success: false, message: 'Incorrect email or password.' });
-  return ok(response, request, { user: { id: user.id, email: user.email, name: user.name, role: user.role }, accessToken: issueToken(user) }, 'Signed in');
+  await createRefreshSession(response, user.id);
+  return ok(response, request, { user: { id: user.id, email: user.email, name: user.name, role: user.role }, accessToken: issueAccessToken(user) }, 'Signed in');
+});
+
+router.post('/auth/refresh-token', async (request, response) => {
+  const user = await rotateRefreshSession(response, readCookie(request.header('cookie')));
+  if (!user) return response.status(401).json({ success: false, message: 'Your session has expired. Please sign in again.' });
+  return ok(response, request, { accessToken: issueAccessToken(user), user: { id: user.id, email: user.email, name: user.name, role: user.role } }, 'Session refreshed');
+});
+
+router.post('/auth/logout', async (request, response) => {
+  await endRefreshSession(response, readCookie(request.header('cookie')));
+  return ok(response, request, null, 'Signed out');
+});
+
+router.get('/auth/me', authenticate, async (request, response) => {
+  const user = await prisma.user.findUnique({ where: { id: request.user!.id }, select: { id: true, email: true, name: true, role: true } });
+  if (!user) return response.status(401).json({ success: false, message: 'Your account is no longer available.' });
+  return ok(response, request, { user });
 });
 
 router.get('/products', async (request, response) => {
@@ -56,6 +70,25 @@ router.get('/products/:productId', async (request, response) => {
 router.get('/cart', authenticate, async (request, response) => {
   const cart = await prisma.cart.findUnique({ where: { userId: request.user!.id }, include: { items: { include: { product: { select: productSelect } } } } });
   return ok(response, request, { cart: cart ?? { items: [] } });
+});
+
+router.get('/wishlist', authenticate, async (request, response) => {
+  const items = await prisma.wishlistItem.findMany({ where: { userId: request.user!.id }, include: { product: { select: productSelect } }, orderBy: { createdAt: 'desc' } });
+  return ok(response, request, { items });
+});
+
+router.post('/wishlist/:productId', authenticate, async (request, response) => {
+  const productId = z.string().min(1).parse(request.params.productId);
+  const product = await prisma.product.findFirst({ where: { id: productId, isActive: true } });
+  if (!product) return response.status(404).json({ success: false, message: 'Product not found.' });
+  await prisma.wishlistItem.upsert({ where: { userId_productId: { userId: request.user!.id, productId } }, update: {}, create: { userId: request.user!.id, productId } });
+  return ok(response, request, null, 'Saved to wishlist', 201);
+});
+
+router.delete('/wishlist/:productId', authenticate, async (request, response) => {
+  const productId = z.string().min(1).parse(request.params.productId);
+  await prisma.wishlistItem.deleteMany({ where: { userId: request.user!.id, productId } });
+  return ok(response, request, null, 'Removed from wishlist');
 });
 
 router.post('/cart/items', authenticate, async (request, response) => {
