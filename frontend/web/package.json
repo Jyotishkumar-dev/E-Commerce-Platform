@@ -1,5 +1,5 @@
 {
-  "name": "@smart-commerce/web",
+  "name": "@e-commerce-platform/web",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,6 +11,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@e-commerce-platform/shared": "workspace:*",
     "@tanstack/react-query": "^5.81.0",
     "axios": "^1.10.0",
     "react": "^19.1.0",

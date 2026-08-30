@@ -5,7 +5,8 @@ import { env } from '../config/env.js';
 import { prisma } from '../lib/prisma.js';
 
 type SessionUser = { id: string; email: string; role: 'CUSTOMER' | 'SELLER' | 'ADMIN' };
-const refreshCookieName = 'smart_commerce_refresh';
+const refreshCookieName = 'shopvibe_refresh';
+const legacyRefreshCookieName = 'smart_commerce_refresh';
 
 export function issueAccessToken(user: SessionUser) {
   return jwt.sign({ sub: user.id, email: user.email, role: user.role }, env.JWT_ACCESS_SECRET, { expiresIn: '15m' });
@@ -35,8 +36,12 @@ export async function endRefreshSession(response: Response, rawToken?: string) {
     await prisma.refreshToken.deleteMany({ where: { tokenHash } });
   }
   response.clearCookie(refreshCookieName, { httpOnly: true, secure: env.NODE_ENV === 'production', sameSite: 'lax', path: '/api/v1/auth' });
+  response.clearCookie(legacyRefreshCookieName, { httpOnly: true, secure: env.NODE_ENV === 'production', sameSite: 'lax', path: '/api/v1/auth' });
 }
 
 export function readCookie(header?: string, name = refreshCookieName) {
-  return header?.split(';').map((entry) => entry.trim()).find((entry) => entry.startsWith(`${name}=`))?.slice(name.length + 1);
+  const cookies = header?.split(';').map((entry) => entry.trim()) ?? [];
+  const primary = cookies.find((entry) => entry.startsWith(`${name}=`))?.slice(name.length + 1);
+  if (primary) return primary;
+  return cookies.find((entry) => entry.startsWith(`${legacyRefreshCookieName}=`))?.slice(legacyRefreshCookieName.length + 1);
 }

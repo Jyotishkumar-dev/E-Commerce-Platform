@@ -1,5 +1,5 @@
 {
-  "name": "@smart-commerce/api",
+  "name": "@e-commerce-platform/api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.10.0",
-    "@smart-commerce/shared": "workspace:*",
+    "@e-commerce-platform/shared": "workspace:*",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^16.6.0",

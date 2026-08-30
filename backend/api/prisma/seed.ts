@@ -6,14 +6,14 @@ const prisma = new PrismaClient();
 async function main() {
   const passwordHash = await bcrypt.hash('Password123!', 12);
   const seller = await prisma.user.upsert({
-    where: { email: 'seller@smartcommerce.local' },
+    where: { email: 'seller@shopvibe.store' },
     update: {},
-    create: { email: 'seller@smartcommerce.local', name: 'Demo Seller', passwordHash, role: UserRole.SELLER },
+    create: { email: 'seller@shopvibe.store', name: 'Demo Seller', passwordHash, role: UserRole.SELLER },
   });
   await prisma.user.upsert({
-    where: { email: 'admin@smartcommerce.local' },
+    where: { email: 'admin@shopvibe.store' },
     update: {},
-    create: { email: 'admin@smartcommerce.local', name: 'Platform Admin', passwordHash, role: UserRole.ADMIN },
+    create: { email: 'admin@shopvibe.store', name: 'Platform Admin', passwordHash, role: UserRole.ADMIN },
   });
   const products = [
     ['AeroFit Headphones', 'Spatial audio headphones with a 40-hour battery.', 12999, 'Audio', 18],
