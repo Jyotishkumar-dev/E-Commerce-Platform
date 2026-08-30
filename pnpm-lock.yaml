@@ -23,12 +23,12 @@ importers:
 
   backend/api:
     dependencies:
+      '@e-commerce-platform/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@prisma/client':
         specifier: ^6.10.0
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
-      '@smart-commerce/shared':
-        specifier: workspace:*
-        version: link:../../packages/shared
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.3
@@ -81,6 +81,9 @@ importers:
 
   frontend/web:
     dependencies:
+      '@e-commerce-platform/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@tanstack/react-query':
         specifier: ^5.81.0
         version: 5.101.4(react@19.2.8)
@@ -128,6 +131,9 @@ importers:
       typescript:
         specifier: ^5.8.0
         version: 5.9.3
+      vitest:
+        specifier: ^3.2.0
+        version: 3.2.7(@types/node@24.13.3)(jiti@2.7.0)(tsx@4.23.12)
 
 packages:
 
