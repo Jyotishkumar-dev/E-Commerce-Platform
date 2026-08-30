@@ -14,39 +14,79 @@ enum UserRole {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String?
-  role         UserRole @default(CUSTOMER)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  products     Product[]
-  cart         Cart?
-  orders       Order[]
+  id            String         @id @default(cuid())
+  email         String         @unique
+  passwordHash  String
+  name          String?
+  phone         String?
+  avatarUrl     String?
+  role          UserRole       @default(CUSTOMER)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  products      Product[]
+  cart          Cart?
+  orders        Order[]
   refreshTokens RefreshToken[]
   wishlist      WishlistItem[]
+  addresses     Address[]
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+
+  @@index([slug])
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  sellerId    String
-  title       String
-  description String?
-  priceCents  Int
-  currency    String   @default("INR")
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  seller      User     @relation(fields: [sellerId], references: [id])
-  category    String   @default("General")
-  imageUrl    String?
-  stock       Int      @default(0)
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
-  wishlistedBy WishlistItem[]
+  id                  String         @id @default(cuid())
+  sellerId            String
+  title               String
+  slug                String         @unique
+  description         String?
+  priceCents          Int
+  compareAtPriceCents Int?
+  currency            String         @default("INR")
+  sku                 String?        @unique
+  brand               String?
+  category            String         @default("General")
+  categoryId          String?
+  imageUrl            String?
+  stock               Int            @default(0)
+  isActive            Boolean        @default(true)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  seller              User           @relation(fields: [sellerId], references: [id])
+  categoryRef         Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  images              ProductImage[]
+  cartItems           CartItem[]
+  orderItems          OrderItem[]
+  wishlistedBy        WishlistItem[]
 
   @@index([sellerId, isActive])
+  @@index([slug])
+  @@index([categoryId, isActive])
+  @@index([isActive, createdAt])
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  url       String
+  altText   String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, sortOrder])
 }
 
 model RefreshToken {
@@ -58,6 +98,25 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, expiresAt])
+}
+
+model Address {
+  id           String   @id @default(cuid())
+  userId       String
+  fullName     String
+  phone        String
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  postalCode   String
+  country      String   @default("India")
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isDefault])
 }
 
 model WishlistItem {
@@ -85,6 +144,8 @@ model CartItem {
   cartId    String
   productId String
   quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
   cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id])
 
@@ -94,30 +155,93 @@ model CartItem {
 enum OrderStatus {
   PENDING
   CONFIRMED
+  PROCESSING
   SHIPPED
   DELIVERED
   CANCELLED
 }
 
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentProvider {
+  RAZORPAY
+  COD
+  STRIPE
+}
+
 model Order {
-  id          String      @id @default(cuid())
-  userId      String
-  status      OrderStatus @default(PENDING)
-  totalCents  Int
-  createdAt   DateTime    @default(now())
-  user        User        @relation(fields: [userId], references: [id])
-  items       OrderItem[]
+  id                      String      @id @default(cuid())
+  userId                  String
+  status                  OrderStatus @default(PENDING)
+  subtotalCents           Int         @default(0)
+  discountCents           Int         @default(0)
+  shippingFeeCents        Int         @default(0)
+  taxCents                Int         @default(0)
+  totalCents              Int
+  shippingAddressSnapshot Json?
+  couponId                String?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  user                    User        @relation(fields: [userId], references: [id])
+  items                   OrderItem[]
+  payment                 Payment?
+  coupon                  Coupon?     @relation(fields: [couponId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
+  @@index([status])
 }
 
 model OrderItem {
-  id             String  @id @default(cuid())
-  orderId        String
-  productId      String
-  productTitle   String
-  unitPriceCents Int
-  quantity       Int
-  order          Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product        Product @relation(fields: [productId], references: [id])
+  id                 String   @id @default(cuid())
+  orderId            String
+  productId          String
+  productTitle       String
+  productSkuSnapshot String?
+  unitPriceCents     Int
+  quantity           Int
+  subtotalCents      Int      @default(0)
+  createdAt          DateTime @default(now())
+  order              Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product            Product  @relation(fields: [productId], references: [id])
+}
+
+model Payment {
+  id                 String          @id @default(cuid())
+  orderId            String          @unique
+  provider           PaymentProvider @default(RAZORPAY)
+  providerOrderId    String?
+  providerPaymentId  String?
+  amountCents        Int
+  currency           String          @default("INR")
+  status             PaymentStatus   @default(PENDING)
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  order              Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+enum CouponType {
+  PERCENTAGE
+  FIXED
+}
+
+model Coupon {
+  id                     String     @id @default(cuid())
+  code                   String     @unique
+  type                   CouponType @default(PERCENTAGE)
+  value                  Int
+  minimumOrderValueCents Int        @default(0)
+  maximumDiscountCents   Int?
+  usageLimit             Int?
+  usedCount              Int        @default(0)
+  startsAt               DateTime   @default(now())
+  expiresAt              DateTime?
+  isActive               Boolean    @default(true)
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
+  orders                 Order[]
 }
