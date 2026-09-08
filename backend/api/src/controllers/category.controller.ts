@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { CategoryService } from '../services/category.service.js';
+import { getParam } from '../utils/params.js';
 import { created, ok } from '../utils/response.js';
 
 export class CategoryController {
@@ -14,7 +15,8 @@ export class CategoryController {
 
   static async getCategory(req: Request, res: Response, next: NextFunction) {
     try {
-      const category = await CategoryService.getCategoryBySlug(req.params.slug);
+      const slug = getParam(req, 'slug');
+      const category = await CategoryService.getCategoryBySlug(slug);
       return ok(res, req, { category }, 'Category details fetched');
     } catch (error) {
       next(error);

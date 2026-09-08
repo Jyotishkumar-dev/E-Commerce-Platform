@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { CartService } from '../services/cart.service.js';
+import { getParam } from '../utils/params.js';
 import { created, ok } from '../utils/response.js';
 
 export class CartController {
@@ -24,8 +25,9 @@ export class CartController {
 
   static async updateItem(req: Request, res: Response, next: NextFunction) {
     try {
+      const productId = getParam(req, 'productId');
       const { quantity } = req.body;
-      const cart = await CartService.updateItem(req.user!.id, req.params.productId, quantity);
+      const cart = await CartService.updateItem(req.user!.id, productId, quantity);
       return ok(res, req, { cart }, 'Cart updated successfully');
     } catch (error) {
       next(error);
@@ -34,7 +36,8 @@ export class CartController {
 
   static async removeItem(req: Request, res: Response, next: NextFunction) {
     try {
-      const cart = await CartService.removeItem(req.user!.id, req.params.productId);
+      const productId = getParam(req, 'productId');
+      const cart = await CartService.removeItem(req.user!.id, productId);
       return ok(res, req, { cart }, 'Item removed from bag');
     } catch (error) {
       next(error);

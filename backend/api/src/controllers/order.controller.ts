@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { OrderService } from '../services/order.service.js';
+import { getParam } from '../utils/params.js';
 import { created, ok } from '../utils/response.js';
 
 export class OrderController {
@@ -23,7 +24,8 @@ export class OrderController {
 
   static async getOrder(req: Request, res: Response, next: NextFunction) {
     try {
-      const order = await OrderService.getOrderById(req.user!.id, req.params.orderId, req.user!.role);
+      const orderId = getParam(req, 'orderId');
+      const order = await OrderService.getOrderById(req.user!.id, orderId, req.user!.role);
       return ok(res, req, { order }, 'Order details fetched');
     } catch (error) {
       next(error);

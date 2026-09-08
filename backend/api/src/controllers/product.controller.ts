@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { ProductService } from '../services/product.service.js';
+import { getParam } from '../utils/params.js';
 import { created, ok } from '../utils/response.js';
 
 export class ProductController {
@@ -23,7 +24,8 @@ export class ProductController {
 
   static async getProduct(req: Request, res: Response, next: NextFunction) {
     try {
-      const product = await ProductService.getProductByIdOrSlug(req.params.productId);
+      const productId = getParam(req, 'productId');
+      const product = await ProductService.getProductByIdOrSlug(productId);
       return ok(res, req, { product }, 'Product details fetched');
     } catch (error) {
       next(error);
@@ -41,7 +43,8 @@ export class ProductController {
 
   static async updateProduct(req: Request, res: Response, next: NextFunction) {
     try {
-      const product = await ProductService.updateProduct(req.params.productId, req.body);
+      const productId = getParam(req, 'productId');
+      const product = await ProductService.updateProduct(productId, req.body);
       return ok(res, req, { product }, 'Product updated successfully');
     } catch (error) {
       next(error);
@@ -50,7 +53,8 @@ export class ProductController {
 
   static async deleteProduct(req: Request, res: Response, next: NextFunction) {
     try {
-      await ProductService.deleteProduct(req.params.productId);
+      const productId = getParam(req, 'productId');
+      await ProductService.deleteProduct(productId);
       return ok(res, req, null, 'Product deactivated successfully');
     } catch (error) {
       next(error);

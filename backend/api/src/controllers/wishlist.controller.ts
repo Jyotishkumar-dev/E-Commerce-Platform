@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { WishlistService } from '../services/wishlist.service.js';
+import { getParam } from '../utils/params.js';
 import { created, ok } from '../utils/response.js';
 
 export class WishlistController {
@@ -14,7 +15,8 @@ export class WishlistController {
 
   static async addToWishlist(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await WishlistService.addToWishlist(req.user!.id, req.params.productId);
+      const productId = getParam(req, 'productId');
+      const result = await WishlistService.addToWishlist(req.user!.id, productId);
       return created(res, req, null, result.message);
     } catch (error) {
       next(error);
@@ -23,7 +25,8 @@ export class WishlistController {
 
   static async removeFromWishlist(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await WishlistService.removeFromWishlist(req.user!.id, req.params.productId);
+      const productId = getParam(req, 'productId');
+      const result = await WishlistService.removeFromWishlist(req.user!.id, productId);
       return ok(res, req, null, result.message);
     } catch (error) {
       next(error);

@@ -1,3 +1,4 @@
+import type { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { BadRequestError, ConflictError, NotFoundError } from '../utils/errors.js';
 
@@ -115,7 +116,7 @@ export class OrderService {
           taxCents,
           totalCents,
           couponId,
-          shippingAddressSnapshot: shippingAddressSnapshot ?? undefined,
+          shippingAddressSnapshot: (shippingAddressSnapshot as unknown as Prisma.InputJsonObject) ?? undefined,
           items: {
             create: cart.items.map((item) => ({
               productId: item.productId,

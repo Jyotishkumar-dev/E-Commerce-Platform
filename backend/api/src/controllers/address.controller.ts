@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { AddressService } from '../services/address.service.js';
+import { getParam } from '../utils/params.js';
 import { created, ok } from '../utils/response.js';
 
 export class AddressController {
@@ -23,7 +24,8 @@ export class AddressController {
 
   static async updateAddress(req: Request, res: Response, next: NextFunction) {
     try {
-      const address = await AddressService.updateAddress(req.user!.id, req.params.addressId, req.body);
+      const addressId = getParam(req, 'addressId');
+      const address = await AddressService.updateAddress(req.user!.id, addressId, req.body);
       return ok(res, req, { address }, 'Address updated successfully');
     } catch (error) {
       next(error);
@@ -32,7 +34,8 @@ export class AddressController {
 
   static async deleteAddress(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await AddressService.deleteAddress(req.user!.id, req.params.addressId);
+      const addressId = getParam(req, 'addressId');
+      const result = await AddressService.deleteAddress(req.user!.id, addressId);
       return ok(res, req, null, result.message);
     } catch (error) {
       next(error);

@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { AdminService } from '../services/admin.service.js';
+import { getParam } from '../utils/params.js';
 import { ok } from '../utils/response.js';
 
 export class AdminController {
@@ -25,7 +26,8 @@ export class AdminController {
 
   static async updateOrderStatus(req: Request, res: Response, next: NextFunction) {
     try {
-      const order = await AdminService.updateOrderStatus(req.params.orderId, req.body.status);
+      const orderId = getParam(req, 'orderId');
+      const order = await AdminService.updateOrderStatus(orderId, req.body.status);
       return ok(res, req, { order }, 'Order status updated successfully');
     } catch (error) {
       next(error);
