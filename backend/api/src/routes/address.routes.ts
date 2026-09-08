@@ -11,6 +11,8 @@ router.use(authenticate);
 router.get('/', AddressController.getAddresses);
 router.post('/', validateBody(createAddressSchema), AddressController.createAddress);
 router.patch('/:addressId', validateBody(updateAddressSchema), AddressController.updateAddress);
+router.patch('/:addressId/default', AddressController.setDefaultAddress);
+router.post('/:addressId/default', AddressController.setDefaultAddress);
 router.delete('/:addressId', AddressController.deleteAddress);
 
 export { router as addressRouter };

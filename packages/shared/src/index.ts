@@ -125,18 +125,63 @@ export type AddToWishlistRequest = z.infer<typeof addToWishlistSchema>;
 
 
 // ==========================================
+// Address Schemas & Types
+// ==========================================
+
+export const addressSchema = z.object({
+  id: z.string(),
+  userId: z.string().optional(),
+  fullName: z.string(),
+  phone: z.string(),
+  addressLine1: z.string(),
+  addressLine2: z.string().nullable().optional(),
+  city: z.string(),
+  state: z.string(),
+  postalCode: z.string(),
+  country: z.string().default('India'),
+  isDefault: z.boolean().default(false),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+});
+export type Address = z.infer<typeof addressSchema>;
+
+export const createAddressSchema = z.object({
+  fullName: z.string().trim().min(2, 'Full name is required.').max(100),
+  phone: z.string().trim().regex(/^[+]?[0-9]{10,14}$/, 'Please enter a valid 10-digit mobile number.'),
+  addressLine1: z.string().trim().min(5, 'Flat / House No., Building, Street is required.').max(200),
+  addressLine2: z.string().trim().max(200).optional(),
+  city: z.string().trim().min(2, 'City is required.').max(100),
+  state: z.string().trim().min(2, 'State is required.').max(100),
+  postalCode: z.string().trim().regex(/^[1-9][0-9]{5}$/, 'Please enter a valid 6-digit PIN code.'),
+  country: z.string().trim().default('India'),
+  isDefault: z.boolean().default(false),
+});
+export type CreateAddressRequest = z.infer<typeof createAddressSchema>;
+
+export const updateAddressSchema = createAddressSchema.partial();
+export type UpdateAddressRequest = z.infer<typeof updateAddressSchema>;
+
+// ==========================================
 // Order Schemas & Types
 // ==========================================
 
-export const OrderStatusEnum = z.enum(['PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED', 'CANCELLED']);
+export const OrderStatusEnum = z.enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']);
 export type OrderStatus = z.infer<typeof OrderStatusEnum>;
+
+export const PaymentStatusEnum = z.enum(['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED']);
+export type PaymentStatus = z.infer<typeof PaymentStatusEnum>;
+
+export const PaymentProviderEnum = z.enum(['RAZORPAY', 'COD', 'STRIPE']);
+export type PaymentProvider = z.infer<typeof PaymentProviderEnum>;
 
 export const orderItemSchema = z.object({
   id: z.string(),
   productId: z.string(),
   productTitle: z.string(),
+  productSkuSnapshot: z.string().nullable().optional(),
   unitPriceCents: z.number().int(),
   quantity: z.number().int().positive(),
+  subtotalCents: z.number().int().optional(),
 });
 export type OrderItem = z.infer<typeof orderItemSchema>;
 
@@ -144,11 +189,18 @@ export const orderSchema = z.object({
   id: z.string(),
   userId: z.string(),
   status: OrderStatusEnum,
+  subtotalCents: z.number().int().optional(),
+  discountCents: z.number().int().optional(),
+  shippingFeeCents: z.number().int().optional(),
+  taxCents: z.number().int().optional(),
   totalCents: z.number().int(),
+  shippingAddressSnapshot: z.record(z.unknown()).nullable().optional(),
+  couponId: z.string().nullable().optional(),
   createdAt: z.string(),
   items: z.array(orderItemSchema),
 });
 export type Order = z.infer<typeof orderSchema>;
+
 
 // ==========================================
 // Common API & Health Schemas & Types

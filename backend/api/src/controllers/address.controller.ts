@@ -41,4 +41,15 @@ export class AddressController {
       next(error);
     }
   }
+
+  static async setDefaultAddress(req: Request, res: Response, next: NextFunction) {
+    try {
+      const addressId = getParam(req, 'addressId');
+      const address = await AddressService.setDefaultAddress(req.user!.id, addressId);
+      return ok(res, req, { address }, 'Default address updated');
+    } catch (error) {
+      next(error);
+    }
+  }
 }
+

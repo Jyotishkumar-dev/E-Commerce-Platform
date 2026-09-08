@@ -65,6 +65,29 @@ export class AddressService {
     });
   }
 
+  static async setDefaultAddress(userId: string, addressId: string) {
+    const existing = await prisma.address.findFirst({
+      where: { id: addressId, userId },
+    });
+
+    if (!existing) {
+      throw new NotFoundError('Address not found.');
+    }
+
+    // Atomically reset existing defaults and set the selected address as default
+    return prisma.$transaction(async (tx) => {
+      await tx.address.updateMany({
+        where: { userId, isDefault: true },
+        data: { isDefault: false },
+      });
+
+      return tx.address.update({
+        where: { id: addressId },
+        data: { isDefault: true },
+      });
+    });
+  }
+
   static async deleteAddress(userId: string, addressId: string) {
     const existing = await prisma.address.findFirst({
       where: { id: addressId, userId },
@@ -78,6 +101,22 @@ export class AddressService {
       where: { id: addressId },
     });
 
+    // If the deleted address was default, promote the newest remaining address
+    if (existing.isDefault) {
+      const remaining = await prisma.address.findFirst({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (remaining) {
+        await prisma.address.update({
+          where: { id: remaining.id },
+          data: { isDefault: true },
+        });
+      }
+    }
+
     return { message: 'Address deleted successfully' };
   }
 }
+
