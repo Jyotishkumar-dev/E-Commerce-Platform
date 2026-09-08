@@ -8,8 +8,10 @@ vi.mock('../lib/prisma.js', () => ({
     product: {
       findMany: vi.fn(),
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
       count: vi.fn(),
       create: vi.fn(),
+      update: vi.fn(),
     },
   },
 }));
@@ -41,6 +43,46 @@ describe('ProductService', () => {
     expect(result.pagination.totalPages).toBe(1);
   });
 
+  it('filters by inStock availability when inStock is true', async () => {
+    vi.mocked(prisma.product.count).mockResolvedValueOnce(1);
+    vi.mocked(prisma.product.findMany)
+      .mockResolvedValueOnce([] as any)
+      .mockResolvedValueOnce([] as any);
+
+    await ProductService.getProducts({ inStock: true });
+
+    expect(prisma.product.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          stock: { gt: 0 },
+        }),
+      }),
+    );
+  });
+
+  it('searches across title, description, brand, and SKU', async () => {
+    vi.mocked(prisma.product.count).mockResolvedValueOnce(1);
+    vi.mocked(prisma.product.findMany)
+      .mockResolvedValueOnce([] as any)
+      .mockResolvedValueOnce([] as any);
+
+    await ProductService.getProducts({ search: 'AUD-AF-001' });
+
+    expect(prisma.product.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          AND: [
+            {
+              OR: expect.arrayContaining([
+                { sku: { contains: 'AUD-AF-001', mode: 'insensitive' } },
+              ]),
+            },
+          ],
+        }),
+      }),
+    );
+  });
+
   it('throws NotFoundError when product does not exist or is inactive', async () => {
     vi.mocked(prisma.product.findFirst).mockResolvedValueOnce(null);
 
@@ -60,7 +102,7 @@ describe('ProductService', () => {
 
     vi.mocked(prisma.product.findFirst).mockResolvedValueOnce(mockProduct as any);
 
-    const product = await ProductService.getProductByIdOrSlug('aerofit-headphones');
+    const product = await ProductService.getProductBySlug('aerofit-headphones');
     expect(product.slug).toBe('aerofit-headphones');
   });
 });

@@ -50,4 +50,43 @@ export class AuthController {
       next(error);
     }
   }
+
+  static async updateProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+      const user = await AuthService.updateProfile(req.user!.id, req.body);
+      return ok(res, req, { user }, 'Profile updated successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async changePassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      const result = await AuthService.changePassword(req.user!.id, currentPassword, newPassword);
+      return ok(res, req, null, result.message);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async forgotPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { email } = req.body;
+      const result = await AuthService.requestPasswordReset(email);
+      return ok(res, req, null, result.message);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token, newPassword } = req.body;
+      const result = await AuthService.resetPassword(token, newPassword);
+      return ok(res, req, null, result.message);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

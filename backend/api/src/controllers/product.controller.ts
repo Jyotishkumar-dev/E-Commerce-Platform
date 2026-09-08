@@ -32,6 +32,16 @@ export class ProductController {
     }
   }
 
+  static async getProductBySlug(req: Request, res: Response, next: NextFunction) {
+    try {
+      const slug = getParam(req, 'slug');
+      const product = await ProductService.getProductBySlug(slug);
+      return ok(res, req, { product }, 'Product details fetched');
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async createProduct(req: Request, res: Response, next: NextFunction) {
     try {
       const product = await ProductService.createProduct(req.user!.id, req.body);

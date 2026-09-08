@@ -7,6 +7,7 @@ import { createProductSchema, productQuerySchema, updateProductSchema } from '..
 const router = Router();
 
 router.get('/', validateQuery(productQuerySchema), ProductController.getProducts);
+router.get('/slug/:slug', ProductController.getProductBySlug);
 router.get('/:productId', ProductController.getProduct);
 router.post('/', authenticate, allowRoles('ADMIN', 'SELLER'), validateBody(createProductSchema), ProductController.createProduct);
 router.patch('/:productId', authenticate, allowRoles('ADMIN', 'SELLER'), validateBody(updateProductSchema), ProductController.updateProduct);

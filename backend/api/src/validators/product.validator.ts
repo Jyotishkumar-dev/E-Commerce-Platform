@@ -5,6 +5,11 @@ export const productQuerySchema = z.object({
   category: z.string().trim().optional(),
   minPrice: z.coerce.number().int().nonnegative().optional(),
   maxPrice: z.coerce.number().int().nonnegative().optional(),
+  inStock: z.preprocess((val) => {
+    if (val === 'true' || val === true || val === 1 || val === '1') return true;
+    if (val === 'false' || val === false || val === 0 || val === '0') return false;
+    return undefined;
+  }, z.boolean().optional()),
   sort: z.enum(['newest', 'price_asc', 'price_desc', 'title_asc']).default('newest'),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),

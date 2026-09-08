@@ -27,9 +27,10 @@ model User {
   products      Product[]
   cart          Cart?
   orders        Order[]
-  refreshTokens RefreshToken[]
-  wishlist      WishlistItem[]
-  addresses     Address[]
+  refreshTokens       RefreshToken[]
+  wishlist            WishlistItem[]
+  addresses           Address[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Category {
@@ -244,4 +245,15 @@ model Coupon {
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt
   orders                 Order[]
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
 }

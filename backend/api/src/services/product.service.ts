@@ -7,6 +7,7 @@ export interface ProductQueryInput {
   category?: string;
   minPrice?: number;
   maxPrice?: number;
+  inStock?: boolean;
   sort?: 'newest' | 'price_asc' | 'price_desc' | 'title_asc';
   page?: number;
   limit?: number;
@@ -42,6 +43,10 @@ export class ProductService {
       isActive: true,
     };
 
+    if (query.inStock) {
+      where.stock = { gt: 0 };
+    }
+
     if (query.category && query.category !== 'All') {
       where.OR = [
         { category: { equals: query.category, mode: 'insensitive' } },
@@ -57,6 +62,7 @@ export class ProductService {
             { title: { contains: term, mode: 'insensitive' } },
             { description: { contains: term, mode: 'insensitive' } },
             { brand: { contains: term, mode: 'insensitive' } },
+            { sku: { contains: term, mode: 'insensitive' } },
           ],
         },
       ];
@@ -108,6 +114,22 @@ export class ProductService {
     const product = await prisma.product.findFirst({
       where: {
         OR: [{ id: idOrSlug }, { slug: idOrSlug }],
+        isActive: true,
+      },
+      select: defaultProductSelect,
+    });
+
+    if (!product) {
+      throw new NotFoundError('Product not found or is currently unavailable.');
+    }
+
+    return product;
+  }
+
+  static async getProductBySlug(slug: string) {
+    const product = await prisma.product.findFirst({
+      where: {
+        slug,
         isActive: true,
       },
       select: defaultProductSelect,
