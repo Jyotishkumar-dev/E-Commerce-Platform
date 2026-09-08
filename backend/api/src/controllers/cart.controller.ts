@@ -43,4 +43,24 @@ export class CartController {
       next(error);
     }
   }
+
+  static async moveToWishlist(req: Request, res: Response, next: NextFunction) {
+    try {
+      const productId = getParam(req, 'productId');
+      const cart = await CartService.moveToWishlist(req.user!.id, productId);
+      return ok(res, req, { cart }, 'Item moved to wishlist');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async clearCart(req: Request, res: Response, next: NextFunction) {
+    try {
+      const cart = await CartService.clearCart(req.user!.id);
+      return ok(res, req, { cart }, 'Cart cleared successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
 }
+

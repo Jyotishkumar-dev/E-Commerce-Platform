@@ -8,6 +8,7 @@ export const PAGE_TITLES = {
   PRODUCTS: `Collection — ${BRAND_NAME}`,
   PRODUCT: (name: string) => `${name} — ${BRAND_NAME}`,
   CART: `Your Bag — ${BRAND_NAME}`,
+  WISHLIST: `Your Wishlist — ${BRAND_NAME}`,
   ORDERS: `My Orders — ${BRAND_NAME}`,
   ACCOUNT: `My Account — ${BRAND_NAME}`,
   ADMIN: `Admin Dashboard — ${BRAND_NAME}`,

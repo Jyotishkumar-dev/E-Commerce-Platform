@@ -42,4 +42,16 @@ export class WishlistService {
 
     return { message: 'Item removed from wishlist' };
   }
+
+  static async moveToCart(userId: string, productId: string) {
+    // Add 1 unit to cart (or increments existing quantity within stock limits)
+    const { CartService } = await import('./cart.service.js');
+    await CartService.addItem(userId, productId, 1);
+
+    // Remove from wishlist
+    await this.removeFromWishlist(userId, productId);
+
+    return { message: 'Item moved to bag' };
+  }
 }
+

@@ -1,59 +1,60 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { api, CartItem, messageOf, Order, Product, User } from '../lib/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { api, messageOf, Order, Product, User } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../hooks/useCart';
+import { useWishlist } from '../hooks/useWishlist';
 import { useCatalogParams } from '../hooks/useCatalogParams';
 import { CatalogFilters } from '../components/CatalogFilters';
 import { ProductGrid } from '../components/ProductGrid';
 import { ProductDetailModal } from '../components/ProductDetailModal';
 import { formatMoney } from '../components/ProductCard';
+import { CartDrawer } from '../components/CartDrawer';
+import { CartPage } from '../components/CartPage';
+import { WishlistPage } from '../components/WishlistPage';
 import { ShopvibeLogo } from '../components/ShopvibeLogo';
 import { PAGE_TITLES, setDocumentTitle } from '../lib/title';
 
 export function App() {
+  const queryClient = useQueryClient();
   const { user, logout } = useAuth();
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [wishlistIds, setWishlistIds] = useState<Set<string>>(new Set());
-  const [page, setPage] = useState<'shop' | 'orders' | 'admin'>('shop');
+  const {
+    items: cartItems,
+    itemCount: cartCount,
+    subtotalCents,
+    hasUnavailableItems,
+    addItem,
+    updateQuantity,
+    removeItem,
+    moveToWishlist: moveCartItemToWishlist,
+  } = useCart();
+
+  const {
+    items: wishlistItems,
+    wishlistIds,
+    wishlistCount,
+    toggleWishlist: toggleWishlistHook,
+    removeFromWishlist,
+    moveToCart: moveWishlistItemToCart,
+  } = useWishlist();
+
+  const [page, setPage] = useState<'shop' | 'cart' | 'wishlist' | 'orders' | 'admin'>('shop');
   const [auth, setAuth] = useState<'login' | 'register' | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [notice, setNotice] = useState('');
 
   useEffect(() => {
     if (page === 'shop') setDocumentTitle(PAGE_TITLES.HOME);
+    else if (page === 'cart') setDocumentTitle(PAGE_TITLES.CART);
+    else if (page === 'wishlist') setDocumentTitle(PAGE_TITLES.WISHLIST);
     else if (page === 'orders') setDocumentTitle(PAGE_TITLES.ORDERS);
     else if (page === 'admin') setDocumentTitle(PAGE_TITLES.ADMIN);
   }, [page]);
 
-  const loadCart = useCallback(async () => {
-    if (!user) return setCart([]);
-    try {
-      const { data } = await api.get('/cart');
-      setCart(data.data.cart.items);
-    } catch {
-      setCart([]);
-    }
-  }, [user]);
-
-  const loadWishlist = useCallback(async () => {
-    if (!user) return setWishlistIds(new Set());
-    try {
-      const { data } = await api.get('/wishlist');
-      setWishlistIds(new Set(data.data.items.map((item: any) => item.product.id)));
-    } catch {
-      setWishlistIds(new Set());
-    }
-  }, [user]);
-
-  useEffect(() => {
-    void loadCart();
-    void loadWishlist();
-  }, [loadCart, loadWishlist]);
-
   const add = async (productId: string, quantity = 1) => {
     if (!user) return setAuth('login');
     try {
-      await api.post('/cart/items', { productId, quantity });
-      await loadCart();
+      await addItem(productId, quantity);
       setCartOpen(true);
       setNotice('Item added to your shopping bag.');
     } catch (e) {
@@ -61,10 +62,28 @@ export function App() {
     }
   };
 
-  const update = async (productId: string, quantity: number) => {
+  const handleUpdateQuantity = async (productId: string, quantity: number) => {
     try {
-      await api.patch(`/cart/items/${productId}`, { quantity });
-      await loadCart();
+      await updateQuantity(productId, quantity);
+    } catch (e) {
+      setNotice(messageOf(e));
+    }
+  };
+
+  const handleRemoveItem = async (productId: string) => {
+    try {
+      await removeItem(productId);
+      setNotice('Item removed from your bag.');
+    } catch (e) {
+      setNotice(messageOf(e));
+    }
+  };
+
+  const handleMoveToWishlist = async (productId: string) => {
+    if (!user) return setAuth('login');
+    try {
+      await moveCartItemToWishlist(productId);
+      setNotice('Item moved to your wishlist.');
     } catch (e) {
       setNotice(messageOf(e));
     }
@@ -73,17 +92,10 @@ export function App() {
   const toggleWishlist = async (productId: string) => {
     if (!user) return setAuth('login');
     try {
+      await toggleWishlistHook(productId);
       if (wishlistIds.has(productId)) {
-        await api.delete(`/wishlist/${productId}`);
-        setWishlistIds((prev) => {
-          const next = new Set(prev);
-          next.delete(productId);
-          return next;
-        });
         setNotice('Item removed from wishlist.');
       } else {
-        await api.post(`/wishlist/${productId}`);
-        setWishlistIds((prev) => new Set(prev).add(productId));
         setNotice('Item saved to wishlist.');
       }
     } catch (e) {
@@ -91,10 +103,31 @@ export function App() {
     }
   };
 
+  const handleMoveToCart = async (productId: string) => {
+    if (!user) return setAuth('login');
+    try {
+      await moveWishlistItemToCart(productId);
+      setNotice('Item moved to your bag.');
+    } catch (e) {
+      setNotice(messageOf(e));
+    }
+  };
+
   const checkout = async () => {
+    if (!user) return setAuth('login');
+    if (hasUnavailableItems) {
+      setNotice('Please remove unavailable or out-of-stock items before checking out.');
+      return;
+    }
     try {
       const { data } = await api.post('/orders');
-      setCart([]);
+      queryClient.setQueryData(['cart'], {
+        items: [],
+        itemCount: 0,
+        subtotalCents: 0,
+        hasUnavailableItems: false,
+      });
+      void queryClient.invalidateQueries({ queryKey: ['cart'] });
       setCartOpen(false);
       setPage('orders');
       setNotice(`Order #${data.data.order.id.slice(-8).toUpperCase()} confirmed successfully.`);
@@ -102,8 +135,6 @@ export function App() {
       setNotice(messageOf(e));
     }
   };
-
-  const cartCount = cart.reduce((n, item) => n + item.quantity, 0);
 
   return (
     <div className="app-shell">
@@ -118,6 +149,15 @@ export function App() {
             onClick={() => setPage('shop')}
           >
             Explore
+          </button>
+          <button
+            className={page === 'wishlist' ? 'font-semibold text-neutral-900' : ''}
+            onClick={() => {
+              if (!user) setAuth('login');
+              else setPage('wishlist');
+            }}
+          >
+            Wishlist {user && wishlistCount > 0 && <span className="nav-badge">{wishlistCount}</span>}
           </button>
           <button
             disabled={!user}
@@ -142,6 +182,7 @@ export function App() {
               className="plain"
               onClick={async () => {
                 await logout();
+                queryClient.clear();
                 setPage('shop');
               }}
             >
@@ -175,6 +216,29 @@ export function App() {
         />
       )}
 
+      {page === 'cart' && (
+        <CartPage
+          items={cartItems}
+          itemCount={cartCount}
+          subtotalCents={subtotalCents}
+          hasUnavailableItems={hasUnavailableItems}
+          onUpdateQuantity={handleUpdateQuantity}
+          onRemoveItem={handleRemoveItem}
+          onMoveToWishlist={handleMoveToWishlist}
+          onContinueShopping={() => setPage('shop')}
+          onCheckout={checkout}
+        />
+      )}
+
+      {page === 'wishlist' && (
+        <WishlistPage
+          items={wishlistItems}
+          onMoveToCart={handleMoveToCart}
+          onRemoveFromWishlist={removeFromWishlist}
+          onContinueShopping={() => setPage('shop')}
+        />
+      )}
+
       {page === 'orders' && <Orders user={user} signIn={() => setAuth('login')} />}
       {page === 'admin' && <Admin user={user} />}
 
@@ -184,14 +248,20 @@ export function App() {
         <small>© {new Date().getFullYear()} Shopvibe.store. All rights reserved.</small>
       </footer>
 
-      {cartOpen && (
-        <Cart
-          items={cart}
-          close={() => setCartOpen(false)}
-          update={update}
-          checkout={checkout}
-        />
-      )}
+      <CartDrawer
+        isOpen={cartOpen}
+        items={cartItems}
+        itemCount={cartCount}
+        subtotalCents={subtotalCents}
+        hasUnavailableItems={hasUnavailableItems}
+        onClose={() => setCartOpen(false)}
+        onUpdateQuantity={handleUpdateQuantity}
+        onRemoveItem={handleRemoveItem}
+        onMoveToWishlist={handleMoveToWishlist}
+        onViewCart={() => setPage('cart')}
+        onCheckout={checkout}
+      />
+
 
       {auth && (
         <Auth
@@ -359,60 +429,7 @@ function Shop({
   );
 }
 
-function Cart({
-  items,
-  close,
-  update,
-  checkout,
-}: {
-  items: CartItem[];
-  close: () => void;
-  update: (id: string, q: number) => void;
-  checkout: () => void;
-}) {
-  const total = items.reduce((n, item) => n + item.product.priceCents * item.quantity, 0);
 
-  return (
-    <div className="drawer" onMouseDown={close}>
-      <aside onMouseDown={(e) => e.stopPropagation()}>
-        <header>
-          <h2>Your Bag</h2>
-          <button className="close" onClick={close} aria-label="Close cart">
-            ×
-          </button>
-        </header>
-
-        <div>
-          {items.map((item) => (
-            <article className="cart-item" key={item.product.id}>
-              <div>
-                <strong>{item.product.title}</strong>
-                <p>{formatMoney(item.product.priceCents * item.quantity)}</p>
-              </div>
-              <div>
-                <button onClick={() => update(item.product.id, item.quantity - 1)}>-</button>
-                <span>{item.quantity}</span>
-                <button onClick={() => update(item.product.id, item.quantity + 1)}>+</button>
-              </div>
-            </article>
-          ))}
-
-          {!items.length && <p>Your bag is empty.</p>}
-        </div>
-
-        <footer>
-          <div>
-            <span>Total</span>
-            <strong>{formatMoney(total)}</strong>
-          </div>
-          <button className="primary full" disabled={!items.length} onClick={checkout}>
-            Checkout
-          </button>
-        </footer>
-      </aside>
-    </div>
-  );
-}
 
 function Auth({
   mode,

@@ -74,8 +74,17 @@ export type ProductQuery = z.infer<typeof productQuerySchema>;
 
 export const cartItemSchema = z.object({
   id: z.string(),
+  cartId: z.string().optional(),
+  productId: z.string().optional(),
   quantity: z.number().int().positive(),
   product: productSchema,
+  isAvailable: z.boolean().optional(),
+  isOutOfStock: z.boolean().optional(),
+  hasSufficientStock: z.boolean().optional(),
+  maxAvailable: z.number().int().optional(),
+  lineTotalCents: z.number().int().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
 });
 export type CartItem = z.infer<typeof cartItemSchema>;
 
@@ -83,19 +92,37 @@ export const cartSchema = z.object({
   id: z.string().optional(),
   userId: z.string().optional(),
   items: z.array(cartItemSchema),
+  itemCount: z.number().int().nonnegative().optional(),
+  subtotalCents: z.number().int().nonnegative().optional(),
+  hasUnavailableItems: z.boolean().optional(),
 });
 export type Cart = z.infer<typeof cartSchema>;
 
 export const addCartItemSchema = z.object({
-  productId: z.string().min(1),
-  quantity: z.coerce.number().int().min(1).max(20).default(1),
+  productId: z.string().min(1, 'Product ID is required.'),
+  quantity: z.coerce.number().int().min(1, 'Quantity must be at least 1.').max(20, 'Maximum 20 units per item.').default(1),
 });
 export type AddCartItemRequest = z.infer<typeof addCartItemSchema>;
 
 export const updateCartItemSchema = z.object({
-  quantity: z.coerce.number().int().min(0).max(20),
+  quantity: z.coerce.number().int().min(0, 'Quantity cannot be negative.').max(20, 'Maximum 20 units per item.'),
 });
 export type UpdateCartItemRequest = z.infer<typeof updateCartItemSchema>;
+
+export const wishlistItemSchema = z.object({
+  id: z.string(),
+  userId: z.string().optional(),
+  productId: z.string(),
+  product: productSchema,
+  createdAt: z.string().optional(),
+});
+export type WishlistItem = z.infer<typeof wishlistItemSchema>;
+
+export const addToWishlistSchema = z.object({
+  productId: z.string().min(1, 'Product ID is required.'),
+});
+export type AddToWishlistRequest = z.infer<typeof addToWishlistSchema>;
+
 
 // ==========================================
 // Order Schemas & Types

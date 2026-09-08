@@ -18,14 +18,40 @@ export type Product = {
   sku?: string | null;
   imageUrl: string | null;
   stock: number;
+  isActive?: boolean;
   seller?: { name: string | null };
 };
 
 export type CartItem = {
   id: string;
+  cartId?: string;
+  productId?: string;
   quantity: number;
   product: Product;
+  isAvailable?: boolean;
+  isOutOfStock?: boolean;
+  hasSufficientStock?: boolean;
+  maxAvailable?: number;
+  lineTotalCents?: number;
 };
+
+export type Cart = {
+  id?: string;
+  userId?: string;
+  items: CartItem[];
+  itemCount: number;
+  subtotalCents: number;
+  hasUnavailableItems?: boolean;
+};
+
+export type WishlistItem = {
+  id: string;
+  userId?: string;
+  productId: string;
+  product: Product;
+  createdAt?: string;
+};
+
 
 export type Order = {
   id: string;
