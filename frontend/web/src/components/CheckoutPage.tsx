@@ -163,7 +163,7 @@ export function CheckoutPage({ onClose, onOrderComplete }: CheckoutPageProps) {
               <AddressList
                 addresses={addresses}
                 mode="select"
-                selectedAddressId={selectedAddressId}
+                selectedAddressId={selectedAddressId ?? undefined}
                 onSelectAddress={(address) => setSelectedAddressId(address.id)}
               />
             )}

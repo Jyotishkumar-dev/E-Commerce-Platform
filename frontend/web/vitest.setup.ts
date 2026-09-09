@@ -1,5 +1,8 @@
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { vi, expect } from 'vitest';
+import * as matchers from '@testing-library/jest-dom/matchers';
+
+expect.extend(matchers);
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -20,7 +23,6 @@ Object.defineProperty(window, 'scrollTo', {
   value: vi.fn(),
 });
 
-// Extend Vitest's expect with jest-dom matchers
-import { expect } from 'vitest';
-import * as matchers from '@testing-library/jest-dom/matchers';
-expect.extend(matchers);
+declare module 'vitest' {
+  interface Assertion<T = any> extends matchers.TestingLibraryMatchers<T, any> {}
+}
