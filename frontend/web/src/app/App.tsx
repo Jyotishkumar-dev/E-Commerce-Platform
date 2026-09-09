@@ -12,6 +12,11 @@ import { formatMoney } from '../components/ProductCard';
 import { CartDrawer } from '../components/CartDrawer';
 import { CartPage } from '../components/CartPage';
 import { WishlistPage } from '../components/WishlistPage';
+import { CheckoutPage } from '../components/CheckoutPage';
+import { OrderConfirmationPage } from '../components/OrderConfirmationPage';
+import { OrderDetailsPage } from '../components/OrderDetailsPage';
+import { AddressList } from '../components/AddressList';
+import { AddressForm } from '../components/AddressForm';
 import { ShopvibeLogo } from '../components/ShopvibeLogo';
 import { PAGE_TITLES, setDocumentTitle } from '../lib/title';
 
@@ -38,10 +43,13 @@ export function App() {
     moveToCart: moveWishlistItemToCart,
   } = useWishlist();
 
-  const [page, setPage] = useState<'shop' | 'cart' | 'wishlist' | 'orders' | 'admin'>('shop');
+  const [page, setPage] = useState<'shop' | 'cart' | 'wishlist' | 'orders' | 'admin' | 'checkout' | 'confirmation' | 'order-detail'>('shop');
   const [auth, setAuth] = useState<'login' | 'register' | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [notice, setNotice] = useState('');
+  const [confirmationOrderId, setConfirmationOrderId] = useState<string | null>(null);
+  const [detailOrderId, setDetailOrderId] = useState<string | null>(null);
+  const [addressModal, setAddressModal] = useState<{ mode: 'manage' | 'add'; editingId?: string } | null>(null);
 
   useEffect(() => {
     if (page === 'shop') setDocumentTitle(PAGE_TITLES.HOME);
@@ -49,6 +57,9 @@ export function App() {
     else if (page === 'wishlist') setDocumentTitle(PAGE_TITLES.WISHLIST);
     else if (page === 'orders') setDocumentTitle(PAGE_TITLES.ORDERS);
     else if (page === 'admin') setDocumentTitle(PAGE_TITLES.ADMIN);
+    else if (page === 'checkout') setDocumentTitle('Checkout');
+    else if (page === 'confirmation') setDocumentTitle('Order Confirmed');
+    else if (page === 'order-detail') setDocumentTitle('Order Details');
   }, [page]);
 
   const add = async (productId: string, quantity = 1) => {
@@ -119,21 +130,37 @@ export function App() {
       setNotice('Please remove unavailable or out-of-stock items before checking out.');
       return;
     }
-    try {
-      const { data } = await api.post('/orders');
-      queryClient.setQueryData(['cart'], {
-        items: [],
-        itemCount: 0,
-        subtotalCents: 0,
-        hasUnavailableItems: false,
-      });
-      void queryClient.invalidateQueries({ queryKey: ['cart'] });
-      setCartOpen(false);
-      setPage('orders');
-      setNotice(`Order #${data.data.order.id.slice(-8).toUpperCase()} confirmed successfully.`);
-    } catch (e) {
-      setNotice(messageOf(e));
-    }
+    setPage('checkout');
+  };
+
+  const handleOrderComplete = (order: Order) => {
+    setConfirmationOrderId(order.id);
+    setPage('confirmation');
+    setCartOpen(false);
+  };
+
+  const handleViewOrderDetail = (orderId: string) => {
+    setDetailOrderId(orderId);
+    setPage('order-detail');
+  };
+
+  const handleBackToOrders = () => {
+    setDetailOrderId(null);
+    setPage('orders');
+  };
+
+  const handleContinueShopping = () => {
+    setConfirmationOrderId(null);
+    setPage('shop');
+  };
+
+  const openAddressManager = (mode: 'manage' | 'add' = 'manage', editingId?: string) => {
+    if (!user) return setAuth('login');
+    setAddressModal({ mode, editingId });
+  };
+
+  const closeAddressManager = () => {
+    setAddressModal(null);
   };
 
   return (
@@ -239,8 +266,27 @@ export function App() {
         />
       )}
 
-      {page === 'orders' && <Orders user={user} signIn={() => setAuth('login')} />}
+      {page === 'orders' && <Orders user={user} signIn={() => setAuth('login')} onViewDetail={handleViewOrderDetail} onManageAddresses={openAddressManager} />}
       {page === 'admin' && <Admin user={user} />}
+
+      {page === 'checkout' && (
+        <CheckoutPage onClose={() => setPage('cart')} onOrderComplete={handleOrderComplete} />
+      )}
+
+      {page === 'confirmation' && confirmationOrderId && (
+        <OrderConfirmationPage
+          orderId={confirmationOrderId}
+          onContinueShopping={handleContinueShopping}
+          onViewOrder={() => {
+            handleViewOrderDetail(confirmationOrderId);
+            setConfirmationOrderId(null);
+          }}
+        />
+      )}
+
+      {page === 'order-detail' && detailOrderId && (
+        <OrderDetailsPage orderId={detailOrderId} onBack={handleBackToOrders} />
+      )}
 
       <footer>
         <ShopvibeLogo size="sm" variant="full" />
@@ -272,6 +318,16 @@ export function App() {
             setAuth(null);
           }}
         />
+      )}
+
+      {addressModal && (
+        <div className="modal" onMouseDown={closeAddressManager} role="dialog" aria-modal="true">
+          <AddressList
+            mode={addressModal.mode === 'manage' ? 'manage' : 'select'}
+            showActions={addressModal.mode === 'manage'}
+            onClose={closeAddressManager}
+          />
+        </div>
       )}
     </div>
   );
@@ -532,7 +588,17 @@ function Auth({
   );
 }
 
-function Orders({ user, signIn }: { user: User | null; signIn: () => void }) {
+function Orders({
+  user,
+  signIn,
+  onViewDetail,
+  onManageAddresses,
+}: {
+  user: User | null;
+  signIn: () => void;
+  onViewDetail?: (orderId: string) => void;
+  onManageAddresses?: () => void;
+}) {
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
@@ -563,11 +629,14 @@ function Orders({ user, signIn }: { user: User | null; signIn: () => void }) {
           <p className="eyebrow">ORDER HISTORY</p>
           <h2>All your purchases in one place.</h2>
         </div>
+        <button type="button" className="plain" onClick={onManageAddresses}>
+          Manage Addresses →
+        </button>
       </div>
 
       <div className="orders-list">
         {orders.map((order) => (
-          <article key={order.id}>
+          <article key={order.id} className="order-card" onClick={() => onViewDetail?.(order.id)}>
             <div>
               <h3>Order #{order.id.slice(-8).toUpperCase()}</h3>
               <p>Placed on {new Date(order.createdAt).toLocaleDateString('en-IN', { dateStyle: 'medium' })}</p>
@@ -589,6 +658,9 @@ function Orders({ user, signIn }: { user: User | null; signIn: () => void }) {
         {!orders.length && (
           <div className="empty">
             <p>You haven't placed any orders yet.</p>
+            <button type="button" className="primary" onClick={() => signIn()}>
+              Start Shopping →
+            </button>
           </div>
         )}
       </div>

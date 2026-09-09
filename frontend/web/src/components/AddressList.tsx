@@ -9,6 +9,7 @@ interface AddressListProps {
   selectedAddressId?: string;
   showActions?: boolean;
   mode?: 'manage' | 'select';
+  onClose?: () => void;
 }
 
 export function AddressList({
@@ -17,6 +18,7 @@ export function AddressList({
   selectedAddressId,
   showActions = true,
   mode = 'manage',
+  onClose,
 }: AddressListProps) {
   const { addresses: hookAddresses, isLoading, refetch, deleteAddress, setDefaultAddress, isDeleting, isSettingDefault } =
     useAddresses();
@@ -94,13 +96,25 @@ export function AddressList({
       {mode === 'manage' && (
         <div className="addresses-header">
           <h2>My Addresses</h2>
-          <button
-            type="button"
-            className="primary"
-            onClick={() => setAddingAddress(true)}
-          >
-            + Add New Address
-          </button>
+          <div className="header-actions">
+            {onClose && (
+              <button
+                type="button"
+                className="plain icon-btn"
+                onClick={onClose}
+                aria-label="Close address manager"
+              >
+                ×
+              </button>
+            )}
+            <button
+              type="button"
+              className="primary"
+              onClick={() => setAddingAddress(true)}
+            >
+              + Add New Address
+            </button>
+          </div>
         </div>
       )}
 
