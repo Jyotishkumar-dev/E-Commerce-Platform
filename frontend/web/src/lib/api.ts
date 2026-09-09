@@ -58,14 +58,41 @@ export type Order = {
   status: string;
   subtotalCents?: number;
   discountCents?: number;
+  shippingFeeCents?: number;
+  taxCents?: number;
   totalCents: number;
   createdAt: string;
+  shippingAddressSnapshot?: Address | null;
   items: {
     id: string;
     productTitle: string;
+    productSkuSnapshot?: string | null;
     unitPriceCents: number;
     quantity: number;
+    subtotalCents: number;
+    product?: {
+      id: string;
+      slug: string;
+      imageUrl: string | null;
+      category: string;
+    };
   }[];
+};
+
+export type Address = {
+  id: string;
+  userId: string;
+  fullName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2?: string | null;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type User = {
