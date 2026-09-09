@@ -96,9 +96,12 @@ export function AddressForm({ initialData, onClose, onSuccess }: AddressFormProp
 
     const newErrors: Record<string, string> = {};
     (Object.keys(formData) as Array<keyof typeof formData>).forEach((key) => {
-      if (key !== 'addressLine2' && key !== 'country') {
-        const error = validateField(key, formData[key]);
-        if (error) newErrors[key] = error;
+      if (key !== 'addressLine2' && key !== 'country' && key !== 'isDefault') {
+        const value = formData[key];
+        if (typeof value === 'string') {
+          const error = validateField(key, value);
+          if (error) newErrors[key] = error;
+        }
       }
     });
 
@@ -129,7 +132,7 @@ export function AddressForm({ initialData, onClose, onSuccess }: AddressFormProp
 
   return (
     <div className="modal" onMouseDown={handleCancel} role="dialog" aria-modal="true" aria-labelledby="address-form-title">
-      <form onSubmit={handleSubmit} onMouseDown={(e) => e.stopPropagation()}>
+      <form onSubmit={handleSubmit} onMouseDown={(e) => e.stopPropagation()} role="form">
         <button type="button" className="close" onClick={handleCancel} aria-label="Close modal">
           ×
         </button>

@@ -3,32 +3,24 @@ import { OrderService } from './order.service.js';
 import { prisma } from '../lib/prisma.js';
 import { BadRequestError, ConflictError, NotFoundError } from '../utils/errors.js';
 
-vi.mock('../lib/prisma.js', () => ({
-  prisma: {
-    $transaction: vi.fn((cb) => cb(prisma)),
-    cart: {
-      findUnique: vi.fn(),
+vi.mock('../lib/prisma.js', () => {
+  const mockPrisma: any = {
+    cart: { findUnique: vi.fn() },
+    cartItem: { deleteMany: vi.fn() },
+    product: { update: vi.fn() },
+    order: { create: vi.fn(), findMany: vi.fn(), findUnique: vi.fn() },
+    coupon: { findUnique: vi.fn(), update: vi.fn() },
+    address: { findFirst: vi.fn() },
+  };
+  return {
+    prisma: {
+      ...mockPrisma,
+      $transaction: vi.fn(async (cb: (tx: typeof mockPrisma) => Promise<any>) => {
+        return await cb(mockPrisma);
+      }),
     },
-    cartItem: {
-      deleteMany: vi.fn(),
-    },
-    product: {
-      update: vi.fn(),
-    },
-    order: {
-      create: vi.fn(),
-      findMany: vi.fn(),
-      findUnique: vi.fn(),
-    },
-    coupon: {
-      findUnique: vi.fn(),
-      update: vi.fn(),
-    },
-    address: {
-      findFirst: vi.fn(),
-    },
-  },
-}));
+  };
+});
 
 describe('OrderService', () => {
   beforeEach(() => {
@@ -313,8 +305,8 @@ describe('OrderService', () => {
         usageLimit: 100,
         usedCount: 5,
         isActive: true,
-        startsAt: new Date('2024-01-01'),
-        expiresAt: new Date('2025-01-01'),
+        startsAt: new Date('2020-01-01'),
+        expiresAt: new Date('2030-01-01'),
       } as any);
       vi.mocked(prisma.order.create).mockResolvedValueOnce({
         id: 'ord_123',

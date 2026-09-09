@@ -263,23 +263,34 @@ describe('useOrder', () => {
 });
 
 describe('formatMoney', () => {
+  let formatMoney: (cents: number | undefined | null) => string;
+
+  beforeAll(async () => {
+    const mod = await import('../hooks/useOrders');
+    formatMoney = mod.formatMoney;
+  });
+
   it('formats cents to INR currency', () => {
-    const { formatMoney } = require('../hooks/useOrders');
     expect(formatMoney(100000)).toBe('₹1,000');
     expect(formatMoney(123456)).toBe('₹1,235');
     expect(formatMoney(0)).toBe('₹0');
   });
 
   it('handles undefined/null', () => {
-    const { formatMoney } = require('../hooks/useOrders');
     expect(formatMoney(undefined)).toBe('—');
     expect(formatMoney(null)).toBe('—');
   });
 });
 
 describe('formatAddress', () => {
+  let formatAddress: (address: any) => string;
+
+  beforeAll(async () => {
+    const mod = await import('../hooks/useOrders');
+    formatAddress = mod.formatAddress;
+  });
+
   it('formats address parts correctly', () => {
-    const { formatAddress } = require('../hooks/useOrders');
     const address = {
       fullName: 'Test User',
       phone: '+919876543210',
@@ -300,7 +311,6 @@ describe('formatAddress', () => {
   });
 
   it('handles missing optional fields', () => {
-    const { formatAddress } = require('../hooks/useOrders');
     const address = {
       fullName: 'Test User',
       phone: '+919876543210',
@@ -315,7 +325,6 @@ describe('formatAddress', () => {
   });
 
   it('returns fallback for null address', () => {
-    const { formatAddress } = require('../hooks/useOrders');
     expect(formatAddress(null)).toBe('No address available');
     expect(formatAddress(undefined)).toBe('No address available');
   });

@@ -94,7 +94,7 @@ describe('AddressForm', () => {
   it('shows validation errors for empty required fields', async () => {
     render(<AddressForm onClose={vi.fn()} onSuccess={vi.fn()} />, { wrapper: createWrapper() });
 
-    fireEvent.click(screen.getByText('Save Address →'));
+    fireEvent.submit(screen.getByRole('form'));
 
     await waitFor(() => {
       expect(screen.getByText('Full name is required.')).toBeInTheDocument();
@@ -110,7 +110,7 @@ describe('AddressForm', () => {
     render(<AddressForm onClose={vi.fn()} onSuccess={vi.fn()} />, { wrapper: createWrapper() });
 
     fireEvent.change(screen.getByLabelText(/mobile number/i), { target: { value: '123' } });
-    fireEvent.click(screen.getByText('Save Address →'));
+    fireEvent.submit(screen.getByRole('form'));
 
     await waitFor(() => {
       expect(screen.getByText('Please enter a valid 10-digit mobile number.')).toBeInTheDocument();
@@ -121,7 +121,7 @@ describe('AddressForm', () => {
     render(<AddressForm onClose={vi.fn()} onSuccess={vi.fn()} />, { wrapper: createWrapper() });
 
     fireEvent.change(screen.getByLabelText(/pin code/i), { target: { value: '12345' } });
-    fireEvent.click(screen.getByText('Save Address →'));
+    fireEvent.submit(screen.getByRole('form'));
 
     await waitFor(() => {
       expect(screen.getByText('Please enter a valid 6-digit PIN code.')).toBeInTheDocument();
@@ -236,7 +236,7 @@ describe('AddressList', () => {
       { wrapper: createWrapper() },
     );
 
-    expect(screen.getByText('Select delivery address')).toBeInTheDocument();
+    expect(screen.getByLabelText('Select delivery address')).toBeInTheDocument();
     expect(screen.getByText('Deliver Here')).toBeInTheDocument();
   });
 
