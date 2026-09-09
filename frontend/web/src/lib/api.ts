@@ -63,6 +63,17 @@ export type Order = {
   totalCents: number;
   createdAt: string;
   shippingAddressSnapshot?: Address | null;
+  payment?: {
+    id: string;
+    provider: string;
+    providerOrderId?: string | null;
+    providerPaymentId?: string | null;
+    amountCents: number;
+    currency: string;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
   items: {
     id: string;
     productTitle: string;

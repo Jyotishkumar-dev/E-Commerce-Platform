@@ -3,6 +3,7 @@ import { useCart } from '../hooks/useCart';
 import { useAddresses, useDefaultAddress } from '../hooks/useAddresses';
 import { useOrders } from '../hooks/useOrders';
 import { AddressForm } from './AddressForm';
+import { AddressList } from './AddressList';
 import { formatMoney } from './ProductCard';
 import type { CartItem, Address, Order } from '../lib/api';
 
@@ -160,6 +161,7 @@ export function CheckoutPage({ onClose, onOrderComplete }: CheckoutPageProps) {
               />
             ) : (
               <AddressList
+                addresses={addresses}
                 mode="select"
                 selectedAddressId={selectedAddressId}
                 onSelectAddress={(address) => setSelectedAddressId(address.id)}

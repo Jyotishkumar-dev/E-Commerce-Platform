@@ -94,6 +94,8 @@ describe('useAddresses', () => {
       city: 'Delhi',
       state: 'Delhi',
       postalCode: '110001',
+      country: 'India',
+      isDefault: false,
     });
 
     expect(api.post).toHaveBeenCalledWith('/addresses', expect.objectContaining({
