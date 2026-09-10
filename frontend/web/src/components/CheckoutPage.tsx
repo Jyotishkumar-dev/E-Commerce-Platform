@@ -286,7 +286,7 @@ export function CheckoutPage({ onClose, onOrderComplete }: CheckoutPageProps) {
                 selectedAddressId={selectedAddressId ?? undefined}
                 onSelectAddress={(address) => setSelectedAddressId(address.id)}
               />
-            ))
+            )}
 
             {selectedAddress && !showAddAddress && (
               <div className="selected-address-summary">
@@ -307,7 +307,7 @@ export function CheckoutPage({ onClose, onOrderComplete }: CheckoutPageProps) {
                   Change Address
                 </button>
               </div>
-            ))
+            )}
 
             {!addresses.length && !showAddAddress && (
               <p className="no-address-notice">

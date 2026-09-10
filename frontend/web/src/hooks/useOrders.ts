@@ -21,7 +21,7 @@ export function useOrders() {
   });
 
   const createOrderMutation = useMutation({
-    mutationFn: async (input?: { shippingAddressId?: string; couponCode?: string }) => {
+    mutationFn: async (input?: { shippingAddressId?: string; couponCode?: string; paymentMethod?: 'RAZORPAY' | 'COD' }) => {
       const response = await api.post('/orders', input);
       return response.data?.data?.order;
     },
@@ -32,7 +32,7 @@ export function useOrders() {
   });
 
   const createOrder = useCallback(
-    async (input?: { shippingAddressId?: string; couponCode?: string }) => {
+    async (input?: { shippingAddressId?: string; couponCode?: string; paymentMethod?: 'RAZORPAY' | 'COD' }) => {
       return createOrderMutation.mutateAsync(input);
     },
     [createOrderMutation],
@@ -116,4 +116,8 @@ export function formatAddress(address: Address | null | undefined): string {
     address.country,
   ].filter(Boolean);
   return parts.join(', ');
+}
+
+export function formatOrderStatus(status: string): string {
+  return status.charAt(0) + status.slice(1).toLowerCase().replace(/_/g, ' ');
 }

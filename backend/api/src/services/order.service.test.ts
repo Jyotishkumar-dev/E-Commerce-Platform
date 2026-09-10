@@ -59,7 +59,7 @@ describe('OrderService', () => {
         ],
       } as any);
 
-      await expect(OrderService.createOrder('usr_1')).rejects.toThrow(ConflictError);
+      await expect(OrderService.createOrder('usr_1', { paymentMethod: 'COD' })).rejects.toThrow(ConflictError);
     });
 
     it('throws ConflictError when cart contains an inactive product', async () => {
@@ -82,7 +82,7 @@ describe('OrderService', () => {
         ],
       } as any);
 
-      await expect(OrderService.createOrder('usr_1')).rejects.toThrow(ConflictError);
+      await expect(OrderService.createOrder('usr_1', { paymentMethod: 'COD' })).rejects.toThrow(ConflictError);
     });
 
     it('silently ignores shipping address that does not belong to user', async () => {
@@ -113,7 +113,7 @@ describe('OrderService', () => {
         shippingAddressSnapshot: null,
       } as any);
 
-      const order = await OrderService.createOrder('usr_1', { shippingAddressId: 'addr_999' });
+      const order = await OrderService.createOrder('usr_1', { shippingAddressId: 'addr_999', paymentMethod: 'COD' });
 
       expect(order.shippingAddressSnapshot).toBeNull();
     });
@@ -158,7 +158,7 @@ describe('OrderService', () => {
       vi.mocked(prisma.cart.findUnique).mockResolvedValueOnce(mockCart as any);
       vi.mocked(prisma.order.create).mockResolvedValueOnce(mockCreatedOrder as any);
 
-      const order = await OrderService.createOrder('usr_1');
+      const order = await OrderService.createOrder('usr_1', { paymentMethod: 'COD' });
 
       expect(order.id).toBe('ord_123');
       expect(order.totalCents).toBe(2599800);
@@ -208,7 +208,7 @@ describe('OrderService', () => {
         ],
       } as any);
 
-      const order = await OrderService.createOrder('usr_1');
+      const order = await OrderService.createOrder('usr_1', { paymentMethod: 'COD' });
 
       // Order should use current DB price (200000), not any stale cart price
       expect(order.totalCents).toBe(200000);
@@ -253,7 +253,7 @@ describe('OrderService', () => {
         ],
       } as any);
 
-      const order = await OrderService.createOrder('usr_1');
+      const order = await OrderService.createOrder('usr_1', { paymentMethod: 'COD' });
 
       expect(prisma.order.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -315,7 +315,7 @@ describe('OrderService', () => {
         totalCents: 95000, // 100000 - 5000 (max discount)
       } as any);
 
-      const order = await OrderService.createOrder('usr_1', { couponCode: 'SAVE10' });
+      const order = await OrderService.createOrder('usr_1', { couponCode: 'SAVE10', paymentMethod: 'COD' });
 
       expect(prisma.coupon.findUnique).toHaveBeenCalledWith({
         where: { code: 'SAVE10' },
@@ -362,7 +362,7 @@ describe('OrderService', () => {
         totalCents: 100000,
       } as any);
 
-      const order = await OrderService.createOrder('usr_1', { couponCode: 'EXPIRED' });
+      const order = await OrderService.createOrder('usr_1', { couponCode: 'EXPIRED', paymentMethod: 'COD' });
 
       expect(prisma.coupon.update).not.toHaveBeenCalled();
       expect(order.totalCents).toBe(100000);
@@ -415,7 +415,7 @@ describe('OrderService', () => {
         },
       } as any);
 
-      await OrderService.createOrder('usr_1', { shippingAddressId: 'addr_1' });
+      await OrderService.createOrder('usr_1', { shippingAddressId: 'addr_1', paymentMethod: 'COD' });
 
       expect(prisma.address.findFirst).toHaveBeenCalledWith({
         where: { id: 'addr_1', userId: 'usr_1' },
@@ -452,7 +452,7 @@ describe('OrderService', () => {
         totalCents: 300000,
       } as any);
 
-      const order = await OrderService.createOrder('usr_1');
+      const order = await OrderService.createOrder('usr_1', { paymentMethod: 'COD' });
 
       expect(order.shippingFeeCents).toBe(0);
       expect(order.taxCents).toBe(0);
@@ -637,7 +637,7 @@ describe('OrderService', () => {
         totalCents: 100000,
       } as any);
 
-      await OrderService.createOrder('usr_1');
+      await OrderService.createOrder('usr_1', { paymentMethod: 'COD' });
 
       // Stock decrement happens in same transaction as order creation
       expect(prisma.$transaction).toHaveBeenCalled();

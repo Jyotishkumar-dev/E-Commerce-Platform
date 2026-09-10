@@ -95,7 +95,7 @@ export class PaymentService {
       throw new BadRequestError('Invalid payment signature.');
     }
 
-    const payment = await prisma.payment.findUnique({
+    const payment = await prisma.payment.findFirst({
       where: { providerOrderId: input.razorpay_order_id },
       include: { order: { include: { items: true } } },
     });
@@ -180,7 +180,7 @@ export class PaymentService {
     status: string;
     captured: boolean;
   }) {
-    const payment = await prisma.payment.findUnique({
+    const payment = await prisma.payment.findFirst({
       where: { providerOrderId: paymentEntity.order_id },
       include: { order: { include: { items: true } } },
     });
@@ -211,7 +211,7 @@ export class PaymentService {
     currency: string;
     status: string;
   }) {
-    const payment = await prisma.payment.findUnique({
+    const payment = await prisma.payment.findFirst({
       where: { providerOrderId: paymentEntity.order_id },
       include: { order: { include: { items: true } } },
     });

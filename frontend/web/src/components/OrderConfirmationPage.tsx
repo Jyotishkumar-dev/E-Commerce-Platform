@@ -1,12 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { useOrder } from '../hooks/useOrders';
-import { formatMoney, formatAddress, getOrderStatusColor } from '../hooks/useOrders';
+import { formatMoney, formatAddress, getOrderStatusColor, formatOrderStatus } from '../hooks/useOrders';
 import type { Order } from '../lib/api';
 
 interface OrderConfirmationPageProps {
   orderId: string;
   onContinueShopping: () => void;
   onViewOrder: () => void;
+}
+
+function getPaymentStatusLabel(status: string): string {
+  switch (status) {
+    case 'PENDING':
+      return 'Pending';
+    case 'SUCCESS':
+      return 'Paid';
+    case 'FAILED':
+      return 'Failed';
+    case 'REFUNDED':
+      return 'Refunded';
+    default:
+      return status;
+  }
 }
 
 export function OrderConfirmationPage({ orderId, onContinueShopping, onViewOrder }: OrderConfirmationPageProps) {
@@ -86,57 +101,58 @@ export function OrderConfirmationPage({ orderId, onContinueShopping, onViewOrder
 
         {/* Payment Status Card */}
         {payment && (
-          <section className="confirmation-details" aria-labelledby="payment-details-heading">
-            <div className="confirmation-card payment-card">
-              <div className="card-header">
-                <h2 id="payment-details-heading">Payment Status</h2>
-                <span className={`status-badge ${getOrderStatusColor(payment.status)}`}>
-                  {payment.status === 'PENDING' ? 'Pending' : payment.status === 'SUCCESS' ? 'Paid' : payment.status === 'FAILED' ? 'Failed' : payment.status === 'REFUNDED' ? 'Refunded' : payment.status}
-                </span>
-              </div>
+          <Fragment>
+            <section className="confirmation-details" aria-labelledby="payment-details-heading">
+              <div className="confirmation-card payment-card">
+                <div className="card-header">
+                  <h2 id="payment-details-heading">Payment Status</h2>
+                  <span className={`status-badge ${getOrderStatusColor(payment.status)}`}>
+                    {getPaymentStatusLabel(payment.status)}
+                  </span>
+                </div>
 
-              <div className="payment-details-grid">
-                <div className="payment-detail">
-                  <span className="payment-label">Amount Paid</span>
-                  <span className="payment-value">{formatMoney(payment.amountCents)}</span>
-                </div>
-                <div className="payment-detail">
-                  <span className="payment-label">Payment Method</span>
-                  <span className="payment-value">{payment.provider === 'COD' ? 'Cash on Delivery' : 'Online Payment'}</span>
-                </div>
-                {payment.providerOrderId && (
+                <div className="payment-details-grid">
                   <div className="payment-detail">
-                    <span className="payment-label">Transaction ID</span>
-                    <span className="payment-value">{payment.providerOrderId}</span>
+                    <span className="payment-label">Amount Paid</span>
+                    <span className="payment-value">{formatMoney(payment.amountCents)}</span>
+                  </div>
+                  <div className="payment-detail">
+                    <span className="payment-label">Payment Method</span>
+                    <span className="payment-value">{payment.provider === 'COD' ? 'Cash on Delivery' : 'Online Payment'}</span>
+                  </div>
+                  {payment.providerOrderId && (
+                    <div className="payment-detail">
+                      <span className="payment-label">Transaction ID</span>
+                      <span className="payment-value">{payment.providerOrderId}</span>
+                    </div>
+                  )}
+                  {payment.providerPaymentId && (
+                    <div className="payment-detail">
+                      <span className="payment-label">Payment ID</span>
+                      <span className="payment-value">{payment.providerPaymentId}</span>
+                    </div>
+                  )}
+                </div>
+
+                {isPaymentPending && (
+                  <div className="payment-actions">
+                    <button type="button" className="primary" onClick={onViewOrder}>
+                      Complete Payment →
+                    </button>
                   </div>
                 )}
-                {payment.providerPaymentId && (
-                  <div className="payment-detail">
-                    <span className="payment-label">Payment ID</span>
-                    <span className="payment-value">{payment.providerPaymentId}</span>
+
+                {isPaymentFailed && (
+                  <div className="payment-actions">
+                    <button type="button" className="primary" onClick={onViewOrder}>
+                      Retry Payment →
+                    </button>
                   </div>
                 )}
               </div>
-
-              {isPaymentPending && (
-                <div className="payment-actions">
-                  <button type="button" className="primary" onClick={onViewOrder}>
-                    Complete Payment →
-                  </button>
-                </div>
-              )}
-
-              {isPaymentFailed && (
-                <div className="payment-actions">
-                  <button type="button" className="primary" onClick={onViewOrder}>
-                    Retry Payment →
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </section>
-      )}
+            </section>
+          </Fragment>
+        )}
 
         {/* Order Details Card */}
         <section className="confirmation-details" aria-labelledby="order-details-heading">
@@ -144,7 +160,7 @@ export function OrderConfirmationPage({ orderId, onContinueShopping, onViewOrder
             <div className="card-header">
               <h2 id="order-details-heading">Order #{orderNumber}</h2>
               <div className="order-meta">
-                <span className={`status-badge ${getOrderStatusColor(order.status)}`}>{order.status}</span>
+                <span className={`status-badge ${getOrderStatusColor(order.status)}`}>{formatOrderStatus(order.status)}</span>
                 <time dateTime={order.createdAt}>{orderDate}</time>
               </div>
             </div>
