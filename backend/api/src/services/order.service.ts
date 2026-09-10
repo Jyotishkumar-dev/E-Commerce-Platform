@@ -5,10 +5,14 @@ import { BadRequestError, ConflictError, NotFoundError } from '../utils/errors.j
 export interface CreateOrderInput {
   shippingAddressId?: string;
   couponCode?: string;
+  paymentMethod?: 'RAZORPAY' | 'COD';
 }
 
 export class OrderService {
   static async createOrder(userId: string, input?: CreateOrderInput) {
+    const paymentMethod = input?.paymentMethod ?? 'RAZORPAY';
+    const isOnlinePayment = paymentMethod === 'RAZORPAY';
+
     return prisma.$transaction(async (tx) => {
       // 1. Fetch active cart with authoritative product records
       const cart = await tx.cart.findUnique({
@@ -106,10 +110,14 @@ export class OrderService {
       const totalCents = Math.max(0, subtotalCents - discountCents + shippingFeeCents + taxCents);
 
       // 6. Create Order record
+      // For online payments, order starts as PENDING and moves to CONFIRMED after payment verification
+      // For COD, order is CONFIRMED immediately
+      const initialStatus = isOnlinePayment ? 'PENDING' : 'CONFIRMED';
+
       const order = await tx.order.create({
         data: {
           userId,
-          status: 'CONFIRMED',
+          status: initialStatus,
           subtotalCents,
           discountCents,
           shippingFeeCents,
@@ -133,20 +141,126 @@ export class OrderService {
         },
       });
 
-      // 7. Atomically decrement inventory
-      for (const item of cart.items) {
+      // 7. For online payments, DO NOT decrement inventory or clear cart yet
+      // Inventory will be decremented and cart cleared after payment verification
+      // For COD, process immediately
+      if (!isOnlinePayment) {
+        // 7a. Atomically decrement inventory
+        for (const item of cart.items) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { decrement: item.quantity } },
+          });
+        }
+
+        // 7b. Clear user's cart
+        await tx.cartItem.deleteMany({
+          where: { cartId: cart.id },
+        });
+      }
+
+      // 8. Create Payment record for online payments
+      if (isOnlinePayment) {
+        await tx.payment.create({
+          data: {
+            orderId: order.id,
+            provider: 'RAZORPAY',
+            amountCents: totalCents,
+            currency: 'INR',
+            status: 'PENDING',
+          },
+        });
+      }
+
+      return order;
+    });
+  }
+
+  static async confirmOrderAfterPayment(orderId: string) {
+    return prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: { items: true },
+      });
+
+      if (!order) {
+        throw new NotFoundError('Order not found.');
+      }
+
+      if (order.status !== 'PENDING') {
+        throw new ConflictError('Order cannot be confirmed in its current state.');
+      }
+
+      // Decrement inventory
+      for (const item of order.items) {
+        const product = await tx.product.findUnique({
+          where: { id: item.productId },
+        });
+
+        if (!product || product.stock < item.quantity) {
+          throw new ConflictError(
+            `Insufficient stock for product ${item.productTitle}.`,
+          );
+        }
+
         await tx.product.update({
           where: { id: item.productId },
           data: { stock: { decrement: item.quantity } },
         });
       }
 
-      // 8. Clear user's cart
-      await tx.cartItem.deleteMany({
-        where: { cartId: cart.id },
+      // Clear user's cart
+      const cart = await tx.cart.findUnique({
+        where: { userId: order.userId },
       });
 
-      return order;
+      if (cart) {
+        await tx.cartItem.deleteMany({
+          where: { cartId: cart.id },
+        });
+      }
+
+      // Update order status to CONFIRMED
+      const updatedOrder = await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'CONFIRMED' },
+        include: { items: true },
+      });
+
+      return updatedOrder;
+    });
+  }
+
+  static async cancelPendingOrder(orderId: string) {
+    return prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        include: { items: true, payment: true },
+      });
+
+      if (!order) {
+        throw new NotFoundError('Order not found.');
+      }
+
+      if (order.status !== 'PENDING') {
+        throw new ConflictError('Only pending orders can be cancelled.');
+      }
+
+      // Update payment status to FAILED
+      if (order.payment) {
+        await tx.payment.update({
+          where: { id: order.payment.id },
+          data: { status: 'FAILED' },
+        });
+      }
+
+      // Update order status to CANCELLED
+      await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'CANCELLED' },
+      });
+
+      return { message: 'Order cancelled successfully' };
     });
   }
 
