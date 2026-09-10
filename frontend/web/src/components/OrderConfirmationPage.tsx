@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useOrder } from '../hooks/useOrders';
-import { formatMoney, formatAddress } from '../hooks/useOrders';
+import { formatMoney, formatAddress, getOrderStatusColor } from '../hooks/useOrders';
 import type { Order } from '../lib/api';
 
 interface OrderConfirmationPageProps {
@@ -61,20 +61,82 @@ export function OrderConfirmationPage({ orderId, onContinueShopping, onViewOrder
     timeStyle: 'short',
   });
 
+  const payment = order.payment;
+  const isPaymentPending = payment && payment.status === 'PENDING';
+  const isPaymentFailed = payment && payment.status === 'FAILED';
+
   return (
     <main className="confirmation-page">
       <div className="confirmation-container">
         {/* Success Header */}
         <header className="confirmation-header">
           <div className="success-badge">
-            <span className="success-icon" aria-hidden="true">✓</span>
-            <span>Order Confirmed</span>
+            <span className="success-icon" aria-hidden="true">{isPaymentPending ? '⏳' : isPaymentFailed ? '✗' : '✓'}</span>
+            <span>{isPaymentPending ? 'Payment Pending' : isPaymentFailed ? 'Payment Failed' : 'Order Confirmed'}</span>
           </div>
-          <h1>Thank you for your order!</h1>
+          <h1>{isPaymentPending ? 'Complete your payment to confirm the order' : isPaymentFailed ? 'Payment could not be completed' : 'Thank you for your order!'}</h1>
           <p className="confirmation-message">
-            Your order has been placed successfully. We've sent a confirmation email with your order details.
+            {isPaymentPending
+              ? 'Your order is awaiting payment. Complete the payment to confirm your order.'
+              : isPaymentFailed
+              ? 'Your payment could not be processed. You can retry the payment from order details.'
+              : 'Your order has been placed successfully. We\'ve sent a confirmation email with your order details.'}
           </p>
         </header>
+
+        {/* Payment Status Card */}
+        {payment && (
+          <section className="confirmation-details" aria-labelledby="payment-details-heading">
+            <div className="confirmation-card payment-card">
+              <div className="card-header">
+                <h2 id="payment-details-heading">Payment Status</h2>
+                <span className={`status-badge ${getOrderStatusColor(payment.status)}`}>
+                  {payment.status === 'PENDING' ? 'Pending' : payment.status === 'SUCCESS' ? 'Paid' : payment.status === 'FAILED' ? 'Failed' : payment.status === 'REFUNDED' ? 'Refunded' : payment.status}
+                </span>
+              </div>
+
+              <div className="payment-details-grid">
+                <div className="payment-detail">
+                  <span className="payment-label">Amount Paid</span>
+                  <span className="payment-value">{formatMoney(payment.amountCents)}</span>
+                </div>
+                <div className="payment-detail">
+                  <span className="payment-label">Payment Method</span>
+                  <span className="payment-value">{payment.provider === 'COD' ? 'Cash on Delivery' : 'Online Payment'}</span>
+                </div>
+                {payment.providerOrderId && (
+                  <div className="payment-detail">
+                    <span className="payment-label">Transaction ID</span>
+                    <span className="payment-value">{payment.providerOrderId}</span>
+                  </div>
+                )}
+                {payment.providerPaymentId && (
+                  <div className="payment-detail">
+                    <span className="payment-label">Payment ID</span>
+                    <span className="payment-value">{payment.providerPaymentId}</span>
+                  </div>
+                )}
+              </div>
+
+              {isPaymentPending && (
+                <div className="payment-actions">
+                  <button type="button" className="primary" onClick={onViewOrder}>
+                    Complete Payment →
+                  </button>
+                </div>
+              )}
+
+              {isPaymentFailed && (
+                <div className="payment-actions">
+                  <button type="button" className="primary" onClick={onViewOrder}>
+                    Retry Payment →
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      )}
 
         {/* Order Details Card */}
         <section className="confirmation-details" aria-labelledby="order-details-heading">
@@ -82,7 +144,7 @@ export function OrderConfirmationPage({ orderId, onContinueShopping, onViewOrder
             <div className="card-header">
               <h2 id="order-details-heading">Order #{orderNumber}</h2>
               <div className="order-meta">
-                <span className="status-badge">{order.status}</span>
+                <span className={`status-badge ${getOrderStatusColor(order.status)}`}>{order.status}</span>
                 <time dateTime={order.createdAt}>{orderDate}</time>
               </div>
             </div>

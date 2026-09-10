@@ -11,6 +11,7 @@ vi.mock('../lib/prisma.js', () => {
     order: { create: vi.fn(), findMany: vi.fn(), findUnique: vi.fn() },
     coupon: { findUnique: vi.fn(), update: vi.fn() },
     address: { findFirst: vi.fn() },
+    payment: { create: vi.fn() },
   };
   return {
     prisma: {
@@ -35,7 +36,7 @@ describe('OrderService', () => {
         items: [],
       } as any);
 
-      await expect(OrderService.createOrder('usr_1')).rejects.toThrow(BadRequestError);
+      await expect(OrderService.createOrder('usr_1', { paymentMethod: 'COD' })).rejects.toThrow(BadRequestError);
     });
 
     it('throws ConflictError when cart contains an item with insufficient stock', async () => {

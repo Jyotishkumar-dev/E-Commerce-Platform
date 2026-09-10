@@ -1,6 +1,8 @@
 import { useOrder } from '../hooks/useOrders';
+import { usePayments } from '../hooks/usePayments';
 import { formatMoney, formatAddress, getOrderStatusColor } from '../hooks/useOrders';
 import type { Order } from '../lib/api';
+import { useState } from 'react';
 
 interface OrderDetailsPageProps {
   orderId: string;
@@ -8,7 +10,10 @@ interface OrderDetailsPageProps {
 }
 
 export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
-  const { order, isLoading, isError, error } = useOrder(orderId);
+  const { order, isLoading, isError, error, refetch } = useOrder(orderId);
+  const { retryPayment, cancelPayment, isRetrying, isCancelling } = usePayments();
+  const [showRetryConfirm, setShowRetryConfirm] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   if (isLoading) {
     return (
@@ -48,6 +53,32 @@ export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
 
   const formatOrderStatus = (status: string) => {
     return status.charAt(0) + status.slice(1).toLowerCase().replace(/_/g, ' ');
+  };
+
+  const payment = order.payment;
+  const isPaymentPending = payment && payment.status === 'PENDING';
+  const isPaymentFailed = payment && payment.status === 'FAILED';
+  const canRetry = isPaymentPending || isPaymentFailed;
+  const canCancel = isPaymentPending;
+
+  const handleRetry = async () => {
+    try {
+      await retryPayment(orderId);
+      void refetch();
+    } catch (e) {
+      console.error('Retry failed:', e);
+    }
+    setShowRetryConfirm(false);
+  };
+
+  const handleCancel = async () => {
+    try {
+      await cancelPayment(orderId);
+      void refetch();
+    } catch (e) {
+      console.error('Cancel failed:', e);
+    }
+    setShowCancelConfirm(false);
   };
 
   return (
@@ -143,19 +174,49 @@ export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
               </div>
             </div>
 
-            {order.payment && (
+            {payment && (
               <div className="payment-info">
                 <h3>Payment</h3>
                 <div className="payment-details">
-                  <span>Method: {order.payment.provider === 'COD' ? 'Cash on Delivery' : order.payment.provider}</span>
-                  <span>Status: {order.payment.status.charAt(0) + order.payment.status.slice(1).toLowerCase()}</span>
-                  {order.payment.providerOrderId && (
-                    <span>Transaction ID: {order.payment.providerOrderId}</span>
+                  <span>Method: {payment.provider === 'COD' ? 'Cash on Delivery' : 'Online Payment'}</span>
+                  <span>Status: {payment.status === 'PENDING' ? 'Pending' : payment.status === 'SUCCESS' ? 'Paid' : payment.status === 'FAILED' ? 'Failed' : payment.status === 'REFUNDED' ? 'Refunded' : payment.status}</span>
+                  {payment.providerOrderId && (
+                    <span>Transaction ID: {payment.providerOrderId}</span>
                   )}
-                  <span>Amount: {formatMoney(order.payment.amountCents)}</span>
+                  {payment.providerPaymentId && (
+                    <span>Payment ID: {payment.providerPaymentId}</span>
+                  )}
+                  <span>Amount: {formatMoney(payment.amountCents)}</span>
                 </div>
+
+                {canRetry && (
+                  <div className="payment-actions">
+                    <button
+                      type="button"
+                      className="primary"
+                      onClick={() => setShowRetryConfirm(true)}
+                      disabled={isRetrying}
+                    >
+                      {isRetrying ? 'Retrying…' : isPaymentPending ? 'Retry Payment' : 'Retry Payment'}
+                    </button>
+                  </div>
+                )}
+
+                {canCancel && (
+                  <div className="payment-actions">
+                    <button
+                      type="button"
+                      className="plain danger"
+                      onClick={() => setShowCancelConfirm(true)}
+                      disabled={isCancelling}
+                    >
+                      {isCancelling ? 'Cancelling…' : 'Cancel Payment'}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
+
           </div>
 
           {shippingAddress && (
@@ -193,6 +254,40 @@ export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
           </div>
         </aside>
       </div>
+
+      {showRetryConfirm && (
+        <div className="modal" onMouseDown={() => setShowRetryConfirm(false)} role="dialog" aria-modal="true" aria-labelledby="retry-confirm-title">
+          <div className="modal-content">
+            <h2 id="retry-confirm-title">Retry Payment</h2>
+            <p>This will open the payment gateway to complete your payment. Do you want to continue?</p>
+            <div className="modal-actions">
+              <button type="button" className="plain" onClick={() => setShowRetryConfirm(false)} disabled={isRetrying}>
+                Cancel
+              </button>
+              <button type="button" className="primary" onClick={handleRetry} disabled={isRetrying}>
+                {isRetrying ? 'Retrying…' : 'Retry Payment →'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCancelConfirm && (
+        <div className="modal" onMouseDown={() => setShowCancelConfirm(false)} role="dialog" aria-modal="true" aria-labelledby="cancel-confirm-title">
+          <div className="modal-content">
+            <h2 id="cancel-confirm-title">Cancel Payment</h2>
+            <p>This will cancel your order and release the items back to inventory. This action cannot be undone.</p>
+            <div className="modal-actions">
+              <button type="button" className="plain" onClick={() => setShowCancelConfirm(false)} disabled={isCancelling}>
+                Keep Order
+              </button>
+              <button type="button" className="primary danger" onClick={handleCancel} disabled={isCancelling}>
+                {isCancelling ? 'Cancelling…' : 'Cancel Payment'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
