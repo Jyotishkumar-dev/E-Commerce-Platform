@@ -49,6 +49,7 @@ interface RazorpayResponse {
 interface RazorpayInstance {
   open: () => void;
   close: () => void;
+  on: (event: string, handler: (response: { error: { code: string; description: string } }) => void) => void;
 }
 
 export function CheckoutPage({ onClose, onOrderComplete }: CheckoutPageProps) {
