@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { api, messageOf, Order, Product, User, Coupon } from '../lib/api';
+import { api, messageOf, Order, Product, User } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../hooks/useCart';
 import { useWishlist } from '../hooks/useWishlist';
@@ -201,8 +201,8 @@ export function App() {
           </button>
           {user?.role === 'ADMIN' && (
             <button
-              className={page === 'admin' ? 'font-semibold text-neutral-900' : ''}
-              onClick={() => setPage('admin')}
+              className={page === 'admin-dashboard' ? 'font-semibold text-neutral-900' : ''}
+              onClick={() => setPage('admin-dashboard')}
             >
               Admin Dashboard
             </button>
@@ -273,7 +273,24 @@ export function App() {
       )}
 
       {page === 'orders' && <Orders user={user} signIn={() => setAuth('login')} onViewDetail={handleViewOrderDetail} onManageAddresses={openAddressManager} />}
-      {page === 'admin' && <Admin user={user} />}
+      {page === 'admin-dashboard' && (
+        <AdminDashboard />
+      )}
+      {page === 'admin-products' && (
+        <AdminProductsPage onBack={() => setPage('admin-dashboard')} />
+      )}
+      {page === 'admin-orders' && (
+        <AdminOrdersPage onBack={() => setPage('admin-dashboard')} />
+      )}
+      {page === 'admin-customers' && (
+        <AdminCustomersPage onBack={() => setPage('admin-dashboard')} />
+      )}
+      {page === 'admin-categories' && (
+        <AdminCategoriesPage onBack={() => setPage('admin-dashboard')} />
+      )}
+      {page === 'admin-coupons' && (
+        <AdminCouponsPage onBack={() => setPage('admin-dashboard')} />
+      )}
 
       {page === 'checkout' && (
         <CheckoutPage onClose={() => setPage('cart')} onOrderComplete={handleOrderComplete} />
@@ -669,56 +686,6 @@ function Orders({
             </button>
           </div>
         )}
-      </div>
-    </main>
-  );
-}
-
-function Admin({ user }: { user: User | null }) {
-  const [stats, setStats] = useState<{ users: number; products: number; orders: number; revenueCents: number } | null>(null);
-
-  useEffect(() => {
-    if (user?.role === 'ADMIN') {
-      void api.get('/admin/overview').then(({ data }) => setStats(data.data));
-    }
-  }, [user]);
-
-  if (user?.role !== 'ADMIN') {
-    return (
-      <main className="message">
-        <p className="eyebrow">RESTRICTED ACCESS</p>
-        <h1>Admin privileges required.</h1>
-        <p>Please sign in with an authorized platform administrator account.</p>
-      </main>
-    );
-  }
-
-  return (
-    <main className="admin">
-      <div className="heading">
-        <div>
-          <p className="eyebrow">PLATFORM ADMINISTRATION</p>
-          <h2>Shopvibe.store Dashboard</h2>
-        </div>
-      </div>
-
-      <div className="metrics">
-        <article>
-          <span>Total Customers</span>
-          <b>{stats?.users ?? '—'}</b>
-        </article>
-        <article>
-          <span>Catalog Items</span>
-          <b>{stats?.products ?? '—'}</b>
-        </article>
-        <article>
-          <span>Total Orders</span>
-          <b>{stats?.orders ?? '—'}</b>
-        </article>
-        <article>
-          <span>Gross Volume (INR)</span>
-          <b>{stats ? formatMoney(stats.revenueCents) : '—'}</b>
-        </article>
       </div>
     </main>
   );

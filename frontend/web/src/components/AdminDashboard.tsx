@@ -1,6 +1,7 @@
-import { useAdminDashboard } from '../hooks/useAdmin';
+import { useAdminDashboard, useAdminOrders } from '../hooks/useAdmin';
 import { formatMoney } from '../hooks/useAdmin';
 import { formatOrderStatus, getOrderStatusColor } from '../hooks/useAdmin';
+import { api, type Order } from '../lib/api';
 
 export function AdminDashboard() {
   const { metrics, isLoading, isError, error, refetch } = useAdminDashboard();
@@ -196,6 +197,18 @@ export function AdminDashboard() {
           </div>
         </section>
       )}
+
+      {/* Admin Navigation Tabs */}
+      <section className="dashboard-section" aria-label="Admin navigation">
+        <h2>Quick Access</h2>
+        <div className="admin-nav-tabs">
+          <a href="/admin/products" className="nav-tab">📦 Products</a>
+          <a href="/admin/orders" className="nav-tab">📋 Orders</a>
+          <a href="/admin/customers" className="nav-tab">👥 Customers</a>
+          <a href="/admin/categories" className="nav-tab">🏷️ Categories</a>
+          <a href="/admin/coupons" className="nav-tab">🎟️ Coupons</a>
+        </div>
+      </section>
     </main>
   );
 }
