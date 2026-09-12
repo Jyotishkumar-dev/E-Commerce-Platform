@@ -196,7 +196,7 @@ export function AdminCouponsPage({ onBack }: AdminCouponsPageProps) {
                 </tr>
               </thead>
               <tbody>
-                {coupons.map((coupon) => (
+                {coupons.map((coupon: import('../lib/api').Coupon) => (
                   <tr key={coupon.id}>
                     <td>
                       <strong className="mono">{coupon.code}</strong>
