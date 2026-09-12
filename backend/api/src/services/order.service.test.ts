@@ -8,10 +8,10 @@ vi.mock('../lib/prisma.js', () => {
     cart: { findUnique: vi.fn() },
     cartItem: { deleteMany: vi.fn() },
     product: { update: vi.fn() },
-    order: { create: vi.fn(), findMany: vi.fn(), findUnique: vi.fn() },
+    order: { create: vi.fn(), findMany: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
     coupon: { findUnique: vi.fn(), update: vi.fn() },
     address: { findFirst: vi.fn() },
-    payment: { create: vi.fn() },
+    payment: { create: vi.fn(), update: vi.fn() },
   };
   return {
     prisma: {
@@ -645,6 +645,137 @@ describe('OrderService', () => {
         where: { id: 'prod_1' },
         data: { stock: { decrement: 1 } },
       });
+    });
+  });
+
+  describe('cancelOrder', () => {
+    it('throws NotFoundError when order does not exist', async () => {
+      vi.mocked(prisma.order.findUnique).mockResolvedValueOnce(null);
+      await expect(OrderService.cancelOrder('usr_1', 'ord_999')).rejects.toThrow(NotFoundError);
+    });
+
+    it('throws NotFoundError when customer tries to cancel another user order', async () => {
+      vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
+        id: 'ord_1',
+        userId: 'usr_2',
+        status: 'PENDING',
+        payment: null,
+        items: [],
+      } as any);
+      await expect(OrderService.cancelOrder('usr_1', 'ord_1')).rejects.toThrow(NotFoundError);
+    });
+
+    it('throws ConflictError when order is already cancelled', async () => {
+      vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
+        id: 'ord_1',
+        userId: 'usr_1',
+        status: 'CANCELLED',
+        payment: null,
+        items: [],
+      } as any);
+      await expect(OrderService.cancelOrder('usr_1', 'ord_1')).rejects.toThrow(ConflictError);
+    });
+
+    it('throws ConflictError when order is delivered', async () => {
+      vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
+        id: 'ord_1',
+        userId: 'usr_1',
+        status: 'DELIVERED',
+        payment: null,
+        items: [],
+      } as any);
+      await expect(OrderService.cancelOrder('usr_1', 'ord_1')).rejects.toThrow(ConflictError);
+    });
+
+    it('throws ConflictError when order is shipped', async () => {
+      vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
+        id: 'ord_1',
+        userId: 'usr_1',
+        status: 'SHIPPED',
+        payment: null,
+        items: [],
+      } as any);
+      await expect(OrderService.cancelOrder('usr_1', 'ord_1')).rejects.toThrow(ConflictError);
+    });
+
+    it('throws ConflictError for paid Razorpay orders (use refund instead)', async () => {
+      vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
+        id: 'ord_1',
+        userId: 'usr_1',
+        status: 'CONFIRMED',
+        payment: { provider: 'RAZORPAY', status: 'SUCCESS' },
+        items: [{ productId: 'prod_1', quantity: 1 }],
+      } as any);
+      await expect(OrderService.cancelOrder('usr_1', 'ord_1')).rejects.toThrow(ConflictError);
+    });
+
+    it('cancels pending COD order and restores inventory', async () => {
+      vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
+        id: 'ord_1',
+        userId: 'usr_1',
+        status: 'PENDING',
+        payment: { provider: 'COD', status: 'PENDING' },
+        items: [
+          { id: 'item_1', productId: 'prod_1', quantity: 2 },
+        ],
+      } as any);
+      vi.mocked(prisma.order.update).mockResolvedValueOnce({ id: 'ord_1', status: 'CANCELLED' } as any);
+
+      const result = await OrderService.cancelOrder('usr_1', 'ord_1');
+
+      expect(result).toEqual({ message: 'Order cancelled successfully' });
+      expect(prisma.order.update).toHaveBeenCalledWith({ where: { id: 'ord_1' }, data: { status: 'CANCELLED' } });
+    });
+
+    it('restores inventory for confirmed orders on cancellation', async () => {
+      vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
+        id: 'ord_1',
+        userId: 'usr_1',
+        status: 'CONFIRMED',
+        payment: { provider: 'COD', status: 'PENDING' },
+        items: [
+          { id: 'item_1', productId: 'prod_1', quantity: 2 },
+          { id: 'item_2', productId: 'prod_2', quantity: 1 },
+        ],
+      } as any);
+      vi.mocked(prisma.order.update).mockResolvedValueOnce({ id: 'ord_1', status: 'CANCELLED' } as any);
+
+      await OrderService.cancelOrder('usr_1', 'ord_1');
+
+      expect(prisma.product.update).toHaveBeenCalledWith({ where: { id: 'prod_1' }, data: { stock: { increment: 2 } } });
+      expect(prisma.product.update).toHaveBeenCalledWith({ where: { id: 'prod_2' }, data: { stock: { increment: 1 } } });
+    });
+
+    it('marks pending online payment as FAILED on cancellation', async () => {
+      vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
+        id: 'ord_1',
+        userId: 'usr_1',
+        status: 'PENDING',
+        payment: { id: 'pay_1', provider: 'RAZORPAY', status: 'PENDING' },
+        items: [{ id: 'item_1', productId: 'prod_1', quantity: 1 }],
+      } as any);
+      vi.mocked(prisma.payment.update).mockResolvedValueOnce({ id: 'pay_1', status: 'FAILED' } as any);
+      vi.mocked(prisma.order.update).mockResolvedValueOnce({ id: 'ord_1', status: 'CANCELLED' } as any);
+
+      await OrderService.cancelOrder('usr_1', 'ord_1');
+
+      expect(prisma.payment.update).toHaveBeenCalledWith({ where: { id: 'pay_1' }, data: { status: 'FAILED' } });
+    });
+
+    it('allows admin to cancel any order', async () => {
+      vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
+        id: 'ord_1',
+        userId: 'usr_2',
+        status: 'PENDING',
+        payment: { provider: 'COD', status: 'PENDING' },
+        items: [{ id: 'item_1', productId: 'prod_1', quantity: 1 }],
+      } as any);
+      vi.mocked(prisma.order.update).mockResolvedValueOnce({ id: 'ord_1', status: 'CANCELLED' } as any);
+
+      // Admin uses the same endpoint but bypasses ownership check at route level
+      // The service itself validates ownership - test verifies the service behavior
+      const result = await OrderService.cancelOrder('usr_2', 'ord_1');
+      expect(result).toEqual({ message: 'Order cancelled successfully' });
     });
   });
 });

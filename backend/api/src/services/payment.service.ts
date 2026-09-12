@@ -322,7 +322,7 @@ export class PaymentService {
       });
 
       try {
-        await razorpay.payments.refund(payment.providerPaymentId, {
+        await razorpay.payments.refund(payment.providerPaymentId!, {
           amount: payment.amountCents,
           currency: 'INR',
         });

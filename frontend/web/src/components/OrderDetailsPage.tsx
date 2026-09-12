@@ -1,8 +1,27 @@
-import { useOrder } from '../hooks/useOrders';
+import { useOrder, useOrders, formatMoney, formatAddress, getOrderStatusColor, formatOrderStatus } from '../hooks/useOrders';
 import { usePayments } from '../hooks/usePayments';
-import { formatMoney, formatAddress, getOrderStatusColor } from '../hooks/useOrders';
-import type { Order } from '../lib/api';
+import { messageOf } from '../lib/api';
 import { useState } from 'react';
+
+function getPaymentStatusLabel(status: string): string {
+  switch (status) {
+    case 'PENDING': return 'Pending';
+    case 'SUCCESS': return 'Paid';
+    case 'FAILED': return 'Failed';
+    case 'REFUNDED': return 'Refunded';
+    default: return status;
+  }
+}
+
+function getPaymentBadgeClass(status: string): string {
+  switch (status) {
+    case 'SUCCESS': return 'status-paid';
+    case 'FAILED': return 'status-failed';
+    case 'PENDING': return 'status-pending';
+    case 'REFUNDED': return 'status-refunded';
+    default: return '';
+  }
+}
 
 interface OrderDetailsPageProps {
   orderId: string;
@@ -11,9 +30,13 @@ interface OrderDetailsPageProps {
 
 export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
   const { order, isLoading, isError, error, refetch } = useOrder(orderId);
-  const { retryPayment, cancelPayment, isRetrying, isCancelling } = usePayments();
+  const { cancelOrder, isCancelling } = useOrders();
+  const { retryPayment, cancelPayment, refundPayment, isRetrying, isCancelling: isCancellingPayment, isRefunding } = usePayments();
   const [showRetryConfirm, setShowRetryConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showRefundConfirm, setShowRefundConfirm] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -51,41 +74,76 @@ export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
     timeStyle: 'short',
   });
 
-  const formatOrderStatus = (status: string) => {
-    return status.charAt(0) + status.slice(1).toLowerCase().replace(/_/g, ' ');
-  };
-
   const payment = order.payment;
   const isPaymentPending = payment && payment.status === 'PENDING';
   const isPaymentFailed = payment && payment.status === 'FAILED';
   const canRetry = isPaymentPending || isPaymentFailed;
-  const canCancel = isPaymentPending;
+  const canCancelPayment = isPaymentPending;
+
+  const canCancelOrder = order.status !== 'CANCELLED' && order.status !== 'DELIVERED' && order.status !== 'SHIPPED' && !(payment?.provider === 'RAZORPAY' && payment.status === 'SUCCESS');
+  const canRefund = order.status !== 'CANCELLED' && payment?.status === 'SUCCESS';
 
   const handleRetry = async () => {
     try {
       await retryPayment(orderId);
       void refetch();
     } catch (e) {
-      console.error('Retry failed:', e);
+      setFormError(messageOf(e));
     }
     setShowRetryConfirm(false);
   };
 
-  const handleCancel = async () => {
+  const handleCancelPayment = async () => {
     try {
       await cancelPayment(orderId);
       void refetch();
+      setSuccessMsg('Payment cancelled. Your order has been cancelled.');
     } catch (e) {
-      console.error('Cancel failed:', e);
+      setFormError(messageOf(e));
     }
     setShowCancelConfirm(false);
   };
+
+  const handleCancelOrder = async () => {
+    setShowCancelConfirm(false);
+    setFormError(null);
+    try {
+      await cancelOrder(order.id);
+      setSuccessMsg('Order cancelled successfully.');
+      void refetch();
+    } catch (e) {
+      setFormError(messageOf(e));
+    }
+  };
+
+  const handleRefund = async () => {
+    setShowRefundConfirm(false);
+    setFormError(null);
+    try {
+      await refundPayment(order.id);
+      setSuccessMsg('Refund processed successfully.');
+      void refetch();
+    } catch (e) {
+      setFormError(messageOf(e));
+    }
+  };
+
+  const timelineSteps = [
+    { key: 'PENDING', label: 'Order Placed', completed: true },
+    { key: 'CONFIRMED', label: 'Confirmed', completed: ['CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'].includes(order.status) },
+    { key: 'PROCESSING', label: 'Processing', completed: ['PROCESSING', 'SHIPPED', 'DELIVERED'].includes(order.status) },
+    { key: 'SHIPPED', label: 'Shipped', completed: ['SHIPPED', 'DELIVERED'].includes(order.status) },
+    { key: 'DELIVERED', label: 'Delivered', completed: order.status === 'DELIVERED' },
+  ];
 
   return (
     <main className="order-details-page">
       <button type="button" className="back-btn" onClick={onBack} aria-label="Back to orders">
         ← Back to Orders
       </button>
+
+      {formError && <div className="dashboard-error" role="alert"><p>{formError}</p><button type="button" className="plain" onClick={() => setFormError(null)}>Dismiss</button></div>}
+      {successMsg && <div className="dashboard-section"><div className="checkout-success"><p>{successMsg}</p><button type="button" className="plain" onClick={() => setSuccessMsg(null)}>Dismiss</button></div></div>}
 
       <header className="order-details-header">
         <div className="header-left">
@@ -179,7 +237,7 @@ export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
                 <h3>Payment</h3>
                 <div className="payment-details">
                   <span>Method: {payment.provider === 'COD' ? 'Cash on Delivery' : 'Online Payment'}</span>
-                  <span>Status: {payment.status === 'PENDING' ? 'Pending' : payment.status === 'SUCCESS' ? 'Paid' : payment.status === 'FAILED' ? 'Failed' : payment.status === 'REFUNDED' ? 'Refunded' : payment.status}</span>
+                  <span>Status: <span className={`status-badge ${getPaymentBadgeClass(payment.status)}`}>{getPaymentStatusLabel(payment.status)}</span></span>
                   {payment.providerOrderId && (
                     <span>Transaction ID: {payment.providerOrderId}</span>
                   )}
@@ -197,26 +255,51 @@ export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
                       onClick={() => setShowRetryConfirm(true)}
                       disabled={isRetrying}
                     >
-                      {isRetrying ? 'Retrying…' : isPaymentPending ? 'Retry Payment' : 'Retry Payment'}
+                      {isRetrying ? 'Retrying…' : 'Retry Payment'}
                     </button>
                   </div>
                 )}
 
-                {canCancel && (
+                {canRefund && (
+                  <div className="payment-actions">
+                    <button
+                      type="button"
+                      className="primary"
+                      onClick={() => setShowRefundConfirm(true)}
+                      disabled={isRefunding}
+                    >
+                      {isRefunding ? 'Refunding…' : 'Request Refund'}
+                    </button>
+                  </div>
+                )}
+
+                {canCancelPayment && !canRefund && (
                   <div className="payment-actions">
                     <button
                       type="button"
                       className="plain danger"
                       onClick={() => setShowCancelConfirm(true)}
-                      disabled={isCancelling}
+                      disabled={isCancellingPayment}
                     >
-                      {isCancelling ? 'Cancelling…' : 'Cancel Payment'}
+                      {isCancellingPayment ? 'Cancelling…' : 'Cancel Payment'}
                     </button>
                   </div>
                 )}
               </div>
             )}
 
+            {canCancelOrder && !canRefund && (
+              <div className="payment-actions">
+                <button
+                  type="button"
+                  className="plain danger"
+                  onClick={() => setShowCancelConfirm(true)}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? 'Cancelling…' : 'Cancel Order'}
+                </button>
+              </div>
+            )}
           </div>
 
           {shippingAddress && (
@@ -232,13 +315,7 @@ export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
           <div className="order-timeline-card">
             <h3>Order Progress</h3>
             <div className="status-timeline">
-              {[
-                { key: 'PENDING', label: 'Order Placed', completed: ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'].includes(order.status) },
-                { key: 'CONFIRMED', label: 'Confirmed', completed: ['CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'].includes(order.status) },
-                { key: 'PROCESSING', label: 'Processing', completed: ['PROCESSING', 'SHIPPED', 'DELIVERED'].includes(order.status) },
-                { key: 'SHIPPED', label: 'Shipped', completed: ['SHIPPED', 'DELIVERED'].includes(order.status) },
-                { key: 'DELIVERED', label: 'Delivered', completed: order.status === 'DELIVERED' },
-              ].map((step, index) => (
+              {timelineSteps.map((step, index) => (
                 <div key={step.key} className={`timeline-step ${step.completed ? 'completed' : ''} ${step.key === order.status ? 'current' : ''} ${index === 4 ? 'last' : ''}`}>
                   <div className="timeline-marker">
                     {step.completed ? '✓' : step.key === order.status ? '●' : ''}
@@ -256,34 +333,59 @@ export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
       </div>
 
       {showRetryConfirm && (
-        <div className="modal" onMouseDown={() => setShowRetryConfirm(false)} role="dialog" aria-modal="true" aria-labelledby="retry-confirm-title">
-          <div className="modal-content">
-            <h2 id="retry-confirm-title">Retry Payment</h2>
-            <p>This will open the payment gateway to complete your payment. Do you want to continue?</p>
-            <div className="modal-actions">
-              <button type="button" className="plain" onClick={() => setShowRetryConfirm(false)} disabled={isRetrying}>
-                Cancel
-              </button>
-              <button type="button" className="primary" onClick={handleRetry} disabled={isRetrying}>
-                {isRetrying ? 'Retrying…' : 'Retry Payment →'}
-              </button>
+        <div className="modal-backdrop" onMouseDown={() => setShowRetryConfirm(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="retry-confirm-title">
+            <div className="modal-content">
+              <h2 id="retry-confirm-title">Retry Payment</h2>
+              <p>This will open the payment gateway to complete your payment. Do you want to continue?</p>
+              <div className="modal-actions">
+                <button type="button" className="plain" onClick={() => setShowRetryConfirm(false)} disabled={isRetrying}>
+                  Cancel
+                </button>
+                <button type="button" className="primary" onClick={handleRetry} disabled={isRetrying}>
+                  {isRetrying ? 'Retrying…' : 'Retry Payment →'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {showCancelConfirm && (
-        <div className="modal" onMouseDown={() => setShowCancelConfirm(false)} role="dialog" aria-modal="true" aria-labelledby="cancel-confirm-title">
-          <div className="modal-content">
-            <h2 id="cancel-confirm-title">Cancel Payment</h2>
-            <p>This will cancel your order and release the items back to inventory. This action cannot be undone.</p>
-            <div className="modal-actions">
-              <button type="button" className="plain" onClick={() => setShowCancelConfirm(false)} disabled={isCancelling}>
-                Keep Order
-              </button>
-              <button type="button" className="primary danger" onClick={handleCancel} disabled={isCancelling}>
-                {isCancelling ? 'Cancelling…' : 'Cancel Payment'}
-              </button>
+        <div className="modal-backdrop" onMouseDown={() => setShowCancelConfirm(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cancel-confirm-title">
+            <div className="modal-content">
+              <h2 id="cancel-confirm-title">Cancel Order</h2>
+              <p>This will cancel your order and release the items back to inventory. This action cannot be undone.</p>
+              <div className="modal-actions">
+                <button type="button" className="plain" onClick={() => setShowCancelConfirm(false)} disabled={isCancelling}>
+                  Keep Order
+                </button>
+                <button type="button" className="primary danger" onClick={handleCancelOrder} disabled={isCancelling}>
+                  {isCancelling ? 'Cancelling…' : 'Cancel Order'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showRefundConfirm && (
+        <div className="modal-backdrop" onMouseDown={() => setShowRefundConfirm(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="refund-confirm-title">
+            <div className="modal-content">
+              <h2 id="refund-confirm-title">Request Refund</h2>
+              <p>
+                This will initiate a refund of {formatMoney(order.totalCents)} to your original payment method.
+              </p>
+              <div className="modal-actions">
+                <button type="button" className="plain" onClick={() => setShowRefundConfirm(false)} disabled={isRefunding}>
+                  Cancel
+                </button>
+                <button type="button" className="primary" onClick={handleRefund} disabled={isRefunding}>
+                  {isRefunding ? 'Refunding…' : 'Request Refund'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

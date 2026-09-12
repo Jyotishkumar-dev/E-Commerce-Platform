@@ -1,9 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useOrders } from '../hooks/useOrders';
 import { usePayments } from '../hooks/usePayments';
-import { formatMoney, formatAddress, getOrderStatusColor, formatOrderStatus, formatPaymentStatus } from '../hooks/useOrders';
+import { formatMoney, formatAddress, getOrderStatusColor, formatOrderStatus } from '../hooks/useOrders';
 import { api, messageOf, type Order, type Address } from '../lib/api';
-import { useNavigate } from 'react-router-dom';
 
 function getPaymentBadgeClass(status: string): string {
   switch (status) {
@@ -28,7 +27,6 @@ export function OrderHistoryPage() {
   const [showRefundConfirm, setShowRefundConfirm] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   const handleCancel = useCallback(async () => {
     if (!selectedOrder) return;
