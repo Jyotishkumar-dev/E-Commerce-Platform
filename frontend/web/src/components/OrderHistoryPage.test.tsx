@@ -201,6 +201,7 @@ describe('OrderHistoryPage', () => {
     });
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel Order' }));
     expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));

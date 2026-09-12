@@ -69,7 +69,7 @@ export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
 
   const shippingAddress = order.shippingAddressSnapshot;
   const orderNumber = order.id.slice(-8).toUpperCase();
-  const orderDate = new Date(order.createdAt).toLocaleDateString('en-IN', {
+  const orderDate = new Date(order.createdAt).toLocaleString('en-IN', {
     dateStyle: 'full',
     timeStyle: 'short',
   });
