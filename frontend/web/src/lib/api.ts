@@ -115,6 +115,22 @@ export type User = {
   role: 'CUSTOMER' | 'SELLER' | 'ADMIN';
 };
 
+export type Coupon = {
+  id: string;
+  code: string;
+  type: 'PERCENTAGE' | 'FIXED';
+  value: number;
+  minimumOrderValueCents: number;
+  maximumDiscountCents: number | null;
+  usageLimit: number | null;
+  usedCount: number;
+  startsAt: string;
+  expiresAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export function setAccessToken(token?: string) {
   if (token) {
     api.defaults.headers.common.Authorization = `Bearer ${token}`;
