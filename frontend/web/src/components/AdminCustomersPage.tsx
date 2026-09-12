@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAdminCustomers, formatMoney } from '../hooks/useAdmin';
-import { Order, User } from '../lib/api';
+import { api, messageOf } from '../lib/api';
+import { Order } from '../lib/api';
 
 interface AdminCustomersPageProps {
   onBack?: () => void;
@@ -27,7 +28,7 @@ export function AdminCustomersPage({ onBack }: AdminCustomersPageProps) {
     setSelectedCustomerOrders(null);
     setOrdersError(null);
     try {
-      const { data } = await import('../lib/api').then((m) => m.api).then((api) => api.get(`/admin/customers/${customerId}`));
+      const { data } = await api.get(`/customers?userId=${customerId}&limit=100`);
       setSelectedCustomerOrders(data?.data?.orders ?? []);
     } catch (e) {
       setOrdersError('Failed to load orders.');

@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { api, messageOf, Order, Product, User } from '../lib/api';
+import { api, messageOf, Order, Product, User, Coupon } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../hooks/useCart';
 import { useWishlist } from '../hooks/useWishlist';
@@ -18,6 +18,12 @@ import { OrderDetailsPage } from '../components/OrderDetailsPage';
 import { AddressList } from '../components/AddressList';
 import { AddressForm } from '../components/AddressForm';
 import { ShopvibeLogo } from '../components/ShopvibeLogo';
+import { AdminDashboard } from '../components/AdminDashboard';
+import { AdminProductsPage } from '../components/AdminProductsPage';
+import { AdminOrdersPage } from '../components/AdminOrdersPage';
+import { AdminCustomersPage } from '../components/AdminCustomersPage';
+import { AdminCategoriesPage } from '../components/AdminCategoriesPage';
+import { AdminCouponsPage } from '../components/AdminCouponsPage';
 import { PAGE_TITLES, setDocumentTitle } from '../lib/title';
 
 export function App() {
@@ -43,7 +49,7 @@ export function App() {
     moveToCart: moveWishlistItemToCart,
   } = useWishlist();
 
-  const [page, setPage] = useState<'shop' | 'cart' | 'wishlist' | 'orders' | 'admin' | 'checkout' | 'confirmation' | 'order-detail'>('shop');
+  const [page, setPage] = useState<'shop' | 'cart' | 'wishlist' | 'orders' | 'admin' | 'checkout' | 'confirmation' | 'order-detail' | 'admin-dashboard' | 'admin-products' | 'admin-orders' | 'admin-customers' | 'admin-categories' | 'admin-coupons'>('shop');
   const [auth, setAuth] = useState<'login' | 'register' | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [notice, setNotice] = useState('');
@@ -56,7 +62,7 @@ export function App() {
     else if (page === 'cart') setDocumentTitle(PAGE_TITLES.CART);
     else if (page === 'wishlist') setDocumentTitle(PAGE_TITLES.WISHLIST);
     else if (page === 'orders') setDocumentTitle(PAGE_TITLES.ORDERS);
-    else if (page === 'admin') setDocumentTitle(PAGE_TITLES.ADMIN);
+    else if (page === 'admin' || page.startsWith('admin-')) setDocumentTitle(PAGE_TITLES.ADMIN);
     else if (page === 'checkout') setDocumentTitle('Checkout');
     else if (page === 'confirmation') setDocumentTitle('Order Confirmed');
     else if (page === 'order-detail') setDocumentTitle('Order Details');
