@@ -152,7 +152,7 @@ export function AdminCategoriesPage({ onBack }: AdminCategoriesPageProps) {
           ) : isError ? (
             <div className="dashboard-error" role="alert">
               <p>Failed to load categories: {error}</p>
-              <button type="button" className="primary" onClick={refetch}>
+              <button type="button" className="primary" onClick={() => refetch()}>
                 Retry
               </button>
             </div>
@@ -167,7 +167,16 @@ export function AdminCategoriesPage({ onBack }: AdminCategoriesPageProps) {
                 </tr>
               </thead>
               <tbody>
-                {categories.map((cat) => (
+                {categories.map((cat: {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  _count?: { products: number };
+  isActive?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}) => (
                   <tr key={cat.id}>
                     <td>
                       {editingId === cat.id ? (

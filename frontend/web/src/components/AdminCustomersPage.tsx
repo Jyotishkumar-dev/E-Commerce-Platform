@@ -79,7 +79,7 @@ export function AdminCustomersPage({ onBack }: AdminCustomersPageProps) {
           ) : isError ? (
             <div className="dashboard-error" role="alert">
               <p>Failed to load customers: {error}</p>
-              <button type="button" className="primary" onClick={refetch}>
+              <button type="button" className="primary" onClick={() => refetch()}>
                 Retry
               </button>
             </div>
@@ -97,7 +97,15 @@ export function AdminCustomersPage({ onBack }: AdminCustomersPageProps) {
                 </tr>
               </thead>
               <tbody>
-                {customers.map((customer) => (
+                {customers.map((customer: {
+                  id: string;
+                  email: string;
+                  name: string | null;
+                  phone?: string | null;
+                  totalSpent: number;
+                  orderCount: number;
+                  createdAt: string;
+                }) => (
                   <tr key={customer.id}>
                     <td>
                       <div className="customer-cell">

@@ -22,7 +22,7 @@ export function AdminDashboard() {
       <main className="admin-dashboard">
         <div className="dashboard-error" role="alert">
           <p>Failed to load dashboard: {error}</p>
-          <button type="button" className="primary" onClick={refetch}>
+          <button type="button" className="primary" onClick={() => refetch()}>
             Retry
           </button>
         </div>
@@ -41,9 +41,9 @@ export function AdminDashboard() {
           <p className="eyebrow">ADMIN DASHBOARD</p>
           <h1>Shopvibe.store Overview</h1>
         </div>
-        <button type="button" className="plain" onClick={refetch}>
-          Refresh
-        </button>
+          <button type="button" className="plain" onClick={() => refetch()}>
+            Refresh
+          </button>
       </header>
 
       {/* Key Metrics Grid */}

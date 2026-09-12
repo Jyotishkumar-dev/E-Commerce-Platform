@@ -159,7 +159,7 @@ export function AdminOrdersPage({ onBack }: AdminOrdersPageProps) {
           ) : isError ? (
             <div className="dashboard-error" role="alert">
               <p>Failed to load orders: {error}</p>
-              <button type="button" className="primary" onClick={refetch}>
+              <button type="button" className="primary" onClick={() => refetch()}>
                 Retry
               </button>
             </div>
@@ -177,7 +177,14 @@ export function AdminOrdersPage({ onBack }: AdminOrdersPageProps) {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
+                {orders.map((order: {
+  id: string;
+  createdAt: string;
+  status: string;
+  totalCents: number;
+  user: { id: string; email: string; name: string | null };
+  payment?: { status: string };
+}) => (
                   <tr key={order.id}>
                     <td>
                       <a href={`/admin/orders/${order.id}`} className="order-link" onClick={(e) => { e.preventDefault(); handleViewOrder(order.id); }}>
@@ -303,7 +310,7 @@ export function AdminOrdersPage({ onBack }: AdminOrdersPageProps) {
                 <strong>Total:</strong> {formatMoney(selectedOrder.totalCents)}
               </div>
               <div>
-                <strong>Customer:</strong> {selectedOrder.user.name ?? selectedOrder.user.email} ({selectedOrder.user.email})
+                <strong>Customer:</strong> {selectedOrder.user?.name ?? selectedOrder.user?.email ?? '—'} ({selectedOrder.user?.email ?? '—'})
               </div>
             </div>
 

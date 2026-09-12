@@ -30,7 +30,6 @@ export function AdminCouponsPage({ onBack }: AdminCouponsPageProps) {
     setEditCode(coupon.code);
     setEditValue(coupon.value);
     setEditType(coupon.type);
-    setEditDescription(coupon.description ?? '');
     setEditIsActive(coupon.isActive);
     setFormError(null);
   };
@@ -43,7 +42,6 @@ export function AdminCouponsPage({ onBack }: AdminCouponsPageProps) {
         code: editCode,
         type: editType,
         value: editValue,
-        description: editDescription || undefined,
         isActive: editIsActive,
       });
       setEditingId(null);
@@ -180,7 +178,7 @@ export function AdminCouponsPage({ onBack }: AdminCouponsPageProps) {
           ) : isError ? (
             <div className="dashboard-error" role="alert">
               <p>Failed to load coupons: {error}</p>
-              <button type="button" className="primary" onClick={refetch}>
+              <button type="button" className="primary" onClick={() => refetch()}>
                 Retry
               </button>
             </div>
@@ -209,7 +207,7 @@ export function AdminCouponsPage({ onBack }: AdminCouponsPageProps) {
                     <td>
                       {coupon.type === 'PERCENTAGE' ? `${coupon.value}%` : formatMoney(coupon.value)}
                     </td>
-                    <td>{coupon.description ?? '—'}</td>
+                    <td>—</td>
                     <td>{coupon.usedCount}</td>
                     <td>
                       <span className={`status-badge ${coupon.isActive ? 'status-active' : 'status-inactive'}`}>

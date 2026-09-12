@@ -277,7 +277,7 @@ export function App() {
         <AdminDashboard />
       )}
       {page === 'admin-products' && (
-        <AdminProductsPage onBack={() => setPage('admin-dashboard')} />
+        <AdminProductsPage onNavigate={() => setPage('admin-dashboard')} />
       )}
       {page === 'admin-orders' && (
         <AdminOrdersPage onBack={() => setPage('admin-dashboard')} />
