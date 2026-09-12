@@ -287,6 +287,63 @@ export class PaymentService {
     return this.createPaymentOrder(userId, { orderId });
   }
 
+  static async refundPayment(userId: string, orderId: string) {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { payment: true },
+    });
+
+    if (!order) {
+      throw new NotFoundError('Order not found.');
+    }
+
+    if (order.userId !== userId) {
+      throw new NotFoundError('Order not found.');
+    }
+
+    const payment = order.payment;
+
+    if (!payment) {
+      throw new NotFoundError('Payment not found.');
+    }
+
+    if (payment.status === 'REFUNDED') {
+      throw new ConflictError('Refund already processed for this order.');
+    }
+
+    if (payment.status !== 'SUCCESS') {
+      throw new ConflictError('Only paid orders can be refunded.');
+    }
+
+    if (payment.provider === 'RAZORPAY') {
+      const razorpay = new Razorpay({
+        key_id: process.env.RAZORPAY_KEY_ID!,
+        key_secret: process.env.RAZORPAY_KEY_SECRET!,
+      });
+
+      try {
+        await razorpay.payments.refund(payment.providerPaymentId, {
+          amount: payment.amountCents,
+          currency: 'INR',
+        });
+      } catch (e) {
+        throw new BadRequestError('Refund request failed. Please try again or contact support.');
+      }
+    }
+
+    await prisma.payment.update({
+      where: { id: payment.id },
+      data: { status: 'REFUNDED' },
+    });
+
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { status: 'CANCELLED' },
+    });
+
+    return { message: 'Refund processed successfully' };
+  }
+
   static async cancelPayment(userId: string, orderId: string) {
     const order = await prisma.order.findUnique({
       where: { id: orderId },

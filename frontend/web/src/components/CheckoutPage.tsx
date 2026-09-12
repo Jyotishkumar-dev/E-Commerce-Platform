@@ -156,9 +156,9 @@ export function CheckoutPage({ onClose, onOrderComplete }: CheckoutPageProps) {
       };
 
       const razorpay = new window.Razorpay(options);
-      razorpay.on('payment.failed', (response: { error: { code: string; description: string } }) => {
+      razorpay.on('payment.failed', () => {
         setIsProcessingPayment(false);
-        setError(`Payment failed: ${response.error.description}`);
+        setError('Payment could not be completed. Your order has not been confirmed. Try again.');
       });
       razorpay.open();
     } catch (e) {
@@ -396,19 +396,20 @@ export function CheckoutPage({ onClose, onOrderComplete }: CheckoutPageProps) {
               </div>
             </div>
 
-            <button
+    <button
               type="button"
               className="primary full checkout-place-order-btn"
               disabled={isDisabled}
               onClick={handlePlaceOrder}
             >
               {isProcessingPayment
-                ? 'Confirming Payment…'
+                ? 'Confirming your payment…'
                 : isPlacingOrder
-                ? 'Creating Order…'
+                ? 'Creating order…'
                 : isCreatingPayment
-                ? 'Preparing Payment…'
-                : 'Pay Now →'}
+                ? 'Preparing secure payment…'
+                : `Pay ${formatMoney(totalCents)} →`
+              }
             </button>
 
             {hasUnavailableItems && (

@@ -53,6 +53,16 @@ export function usePayments() {
     },
   });
 
+  const refundPaymentMutation = useMutation({
+    mutationFn: async (orderId: string) => {
+      const response = await api.post(`/payments/refund/${orderId}`);
+      return response.data?.data;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
+
   const createPaymentOrder = useCallback(
     async (orderId: string) => {
       return createPaymentOrderMutation.mutateAsync(orderId);
@@ -81,14 +91,23 @@ export function usePayments() {
     [cancelPaymentMutation],
   );
 
+  const refundPayment = useCallback(
+    async (orderId: string) => {
+      return refundPaymentMutation.mutateAsync(orderId);
+    },
+    [refundPaymentMutation],
+  );
+
   return {
     createPaymentOrder,
     verifyPayment,
     retryPayment,
     cancelPayment,
+    refundPayment,
     isCreating: createPaymentOrderMutation.isPending,
     isVerifying: verifyPaymentMutation.isPending,
     isRetrying: retryPaymentMutation.isPending,
     isCancelling: cancelPaymentMutation.isPending,
+    isRefunding: refundPaymentMutation.isPending,
   };
 }

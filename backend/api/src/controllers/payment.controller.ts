@@ -51,4 +51,14 @@ export class PaymentController {
       next(error);
     }
   }
+
+  static async refundPayment(req: Request, res: Response, next: NextFunction) {
+    try {
+      const orderId = getParam(req, 'orderId');
+      const result = await PaymentService.refundPayment(req.user!.id, orderId);
+      return ok(res, req, result, 'Refund processed successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
 }

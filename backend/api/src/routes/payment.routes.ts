@@ -12,6 +12,7 @@ router.post('/create-order', validateBody(createPaymentOrderSchema), PaymentCont
 router.post('/verify', validateBody(verifyPaymentSchema), PaymentController.verifyPayment);
 router.post('/retry/:orderId', PaymentController.retryPayment);
 router.post('/cancel/:orderId', PaymentController.cancelPayment);
+router.post('/refund/:orderId', PaymentController.refundPayment);
 
 router.post('/webhook', PaymentController.handleWebhook);
 

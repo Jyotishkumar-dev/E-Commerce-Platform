@@ -231,30 +231,55 @@ export class OrderService {
     });
   }
 
-  static async cancelPendingOrder(orderId: string) {
+  static async cancelOrder(orderId: string, userId: string) {
     return prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({
         where: { id: orderId },
-        include: { items: true, payment: true },
+        include: { items: true, payment: true, user: { select: { id: true } } },
       });
 
       if (!order) {
         throw new NotFoundError('Order not found.');
       }
 
-      if (order.status !== 'PENDING') {
-        throw new ConflictError('Only pending orders can be cancelled.');
+      if (order.userId !== userId) {
+        throw new NotFoundError('Order not found.');
       }
 
-      // Update payment status to FAILED
-      if (order.payment) {
+      if (order.status === 'CANCELLED') {
+        throw new ConflictError('Order is already cancelled.');
+      }
+
+      if (order.status === 'DELIVERED') {
+        throw new ConflictError('Delivered orders cannot be cancelled.');
+      }
+
+      if (order.status === 'SHIPPED') {
+        throw new ConflictError('Shipped orders cannot be cancelled. Please contact support.');
+      }
+
+      const isOnlinePayment = order.payment?.provider === 'RAZORPAY';
+
+      if (isOnlinePayment && order.payment?.status === 'SUCCESS') {
+        throw new ConflictError('Paid orders require a refund. Please use the refund option.');
+      }
+
+      if (isOnlinePayment && order.payment?.status === 'PENDING') {
         await tx.payment.update({
           where: { id: order.payment.id },
           data: { status: 'FAILED' },
         });
       }
 
-      // Update order status to CANCELLED
+      if (order.status === 'CONFIRMED') {
+        for (const item of order.items) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
+          });
+        }
+      }
+
       await tx.order.update({
         where: { id: orderId },
         data: { status: 'CANCELLED' },

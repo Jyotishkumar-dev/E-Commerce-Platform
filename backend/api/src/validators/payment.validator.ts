@@ -10,6 +10,10 @@ export const verifyPaymentSchema = z.object({
   razorpay_signature: z.string().min(1),
 });
 
+export const refundSchema = z.object({
+  reason: z.string().trim().max(500).optional(),
+});
+
 export const webhookSchema = z.object({
   event: z.string(),
   payload: z.object({

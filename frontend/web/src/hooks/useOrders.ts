@@ -38,6 +38,14 @@ export function useOrders() {
     [createOrderMutation],
   );
 
+  const cancelOrder = useCallback(
+    async (orderId: string) => {
+      const response = await api.post(`/orders/${orderId}/cancel`);
+      return response.data?.data;
+    },
+    [],
+  );
+
   return {
     orders,
     isLoading,
@@ -45,6 +53,7 @@ export function useOrders() {
     error: error ? messageOf(error) : null,
     refetch,
     createOrder,
+    cancelOrder,
     isCreating: createOrderMutation.isPending,
   };
 }

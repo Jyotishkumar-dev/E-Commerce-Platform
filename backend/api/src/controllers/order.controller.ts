@@ -31,4 +31,14 @@ export class OrderController {
       next(error);
     }
   }
+
+  static async cancelOrder(req: Request, res: Response, next: NextFunction) {
+    try {
+      const orderId = getParam(req, 'orderId');
+      const result = await OrderService.cancelOrder(orderId, req.user!.id);
+      return ok(res, req, result, 'Order cancelled successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
 }
