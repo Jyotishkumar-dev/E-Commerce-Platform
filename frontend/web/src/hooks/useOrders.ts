@@ -38,12 +38,21 @@ export function useOrders() {
     [createOrderMutation],
   );
 
-  const cancelOrder = useCallback(
-    async (orderId: string) => {
+  const cancelOrderMutation = useMutation({
+    mutationFn: async (orderId: string) => {
       const response = await api.post(`/orders/${orderId}/cancel`);
       return response.data?.data;
     },
-    [],
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
+
+  const cancelOrder = useCallback(
+    async (orderId: string) => {
+      return cancelOrderMutation.mutateAsync(orderId);
+    },
+    [cancelOrderMutation],
   );
 
   return {
@@ -55,6 +64,7 @@ export function useOrders() {
     createOrder,
     cancelOrder,
     isCreating: createOrderMutation.isPending,
+    isCancelling: cancelOrderMutation.isPending,
   };
 }
 

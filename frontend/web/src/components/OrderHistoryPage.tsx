@@ -19,6 +19,21 @@ function getPaymentBadgeClass(status: string): string {
   }
 }
 
+function getPaymentStatusLabel(status: string): string {
+  switch (status) {
+    case 'PENDING':
+      return 'Pending';
+    case 'SUCCESS':
+      return 'Paid';
+    case 'FAILED':
+      return 'Failed';
+    case 'REFUNDED':
+      return 'Refunded';
+    default:
+      return status;
+  }
+}
+
 export function OrderHistoryPage() {
   const { orders, isLoading, isError, error, refetch, cancelOrder, isCancelling } = useOrders();
   const { refundPayment, isRefunding } = usePayments();
@@ -91,6 +106,15 @@ export function OrderHistoryPage() {
         </div>
       )}
 
+      {isError && !formError && (
+        <div className="dashboard-error" role="alert">
+          <p>Failed to load orders: {error}</p>
+          <button type="button" className="primary" onClick={() => void refetch()}>
+            Retry
+          </button>
+        </div>
+      )}
+
       {successMsg && (
         <div className="dashboard-section">
           <div className="checkout-success">
@@ -143,7 +167,7 @@ export function OrderHistoryPage() {
                     <td>
                       {order.payment ? (
                         <span className={`status-badge ${getPaymentBadgeClass(order.payment.status)}`}>
-                          {formatPaymentStatus(order.payment.status)}
+                           {getPaymentStatusLabel(order.payment.status)}
                         </span>
                       ) : (
                         <span>—</span>

@@ -84,11 +84,11 @@ describe('PaymentService', () => {
         payment: mockPayment,
       } as any);
       const mockRazorpay = { payments: { refund: vi.fn().mockResolvedValue({}) } };
-      vi.mocked(Razorpay).mockImplementationOnce(() => mockRazorpay);
+      vi.mocked(Razorpay as any).mockImplementationOnce(() => mockRazorpay);
 
       const result = await PaymentService.refundPayment('usr_1', 'ord_1');
 
-      expect(mockRazorpay.payments.refund).toHaveBeenCalledWith('rp_pay_1', { amount: 100000, currency: 'INR' });
+      expect(mockRazorpay.payments.refund).toHaveBeenCalledWith('rp_pay_1', { amount: 100000 });
       expect(prisma.payment.update).toHaveBeenCalledWith({ where: { id: 'pay_1' }, data: { status: 'REFUNDED' } });
       expect(prisma.order.update).toHaveBeenCalledWith({ where: { id: 'ord_1' }, data: { status: 'CANCELLED' } });
       expect(result).toEqual({ message: 'Refund processed successfully' });
@@ -117,7 +117,7 @@ describe('PaymentService', () => {
         payment: mockPayment,
       } as any);
       const mockRazorpay = { payments: { refund: vi.fn().mockRejectedValue(new Error('Razorpay error')) } };
-      vi.mocked(Razorpay).mockImplementationOnce(() => mockRazorpay);
+      vi.mocked(Razorpay as any).mockImplementationOnce(() => mockRazorpay);
 
       await expect(PaymentService.refundPayment('usr_1', 'ord_1')).rejects.toThrow(BadRequestError);
       expect(prisma.payment.update).not.toHaveBeenCalled();

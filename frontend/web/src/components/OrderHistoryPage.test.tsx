@@ -178,28 +178,32 @@ describe('OrderHistoryPage', () => {
       orders: [],
       isLoading: false,
       isError: true,
-      error: 'Failed to load orders',
+      error: 'CONNECTION_TIMEOUT',
       refetch: vi.fn(),
       cancelOrder: vi.fn(),
       isCancelling: false,
     });
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
-    expect(screen.getByText(/Failed to load orders/)).toBeInTheDocument();
+    expect(screen.getByText('CONNECTION_TIMEOUT')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
   });
 
-  it('dismisses error messages', () => {
+  it('shows dismiss for cancel/refund errors', async () => {
+    const cancelOrder = vi.fn().mockRejectedValue(new Error('Cannot cancel'));
     (useOrders as any).mockReturnValue({
-      orders: [],
+      orders: mockOrders,
       isLoading: false,
-      isError: true,
-      error: 'Failed',
+      isError: false,
+      error: null,
       refetch: vi.fn(),
-      cancelOrder: vi.fn(),
+      cancelOrder,
       isCancelling: false,
     });
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
+    expect(cancelOrder).toHaveBeenCalledWith('ord_1');
   });
 });

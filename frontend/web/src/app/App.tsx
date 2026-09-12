@@ -153,7 +153,7 @@ export function App() {
 
   const handleBackToOrders = () => {
     setDetailOrderId(null);
-    setPage('orders');
+    setPage('order-history');
   };
 
   const handleContinueShopping = () => {

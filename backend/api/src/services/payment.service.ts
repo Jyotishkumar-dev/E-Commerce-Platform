@@ -324,7 +324,6 @@ export class PaymentService {
       try {
         await razorpay.payments.refund(payment.providerPaymentId!, {
           amount: payment.amountCents,
-          currency: 'INR',
         });
       } catch (e) {
         throw new BadRequestError('Refund request failed. Please try again or contact support.');
