@@ -74,6 +74,7 @@ export type Order = {
     createdAt: string;
     updatedAt: string;
   } | null;
+  user?: { id: string; email: string; name: string | null };
   items: {
     id: string;
     productTitle: string;
@@ -113,6 +114,17 @@ export type User = {
   phone?: string | null;
   avatarUrl?: string | null;
   role: 'CUSTOMER' | 'SELLER' | 'ADMIN';
+};
+
+export type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  isActive?: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Coupon = {

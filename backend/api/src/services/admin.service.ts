@@ -499,7 +499,6 @@ export class AdminService {
         usageLimit: input.usageLimit,
         startsAt: input.startsAt ? new Date(input.startsAt) : new Date(),
         expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
-        description: input.description,
       },
     });
   }
@@ -513,7 +512,6 @@ export class AdminService {
     usageLimit?: number;
     startsAt?: string;
     expiresAt?: string;
-    description?: string;
     isActive?: boolean;
   }) {
     const existing = await prisma.coupon.findUnique({ where: { id: couponId } });

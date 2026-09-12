@@ -47,7 +47,7 @@ export function AdminProductsPage({ onNavigate }: AdminProductsPageProps) {
       <main className="admin-products">
         <div className="dashboard-error" role="alert">
           <p>Failed to load products: {error}</p>
-          <button type="button" className="primary" onClick={refetch}>
+          <button type="button" className="primary" onClick={() => refetch()}>
             Retry
           </button>
         </div>
@@ -87,7 +87,7 @@ export function AdminProductsPage({ onNavigate }: AdminProductsPageProps) {
                 onChange={(e) => handleFilterChange('category', e.target.value || '')}
               >
                 <option value="">All Categories</option>
-                {categories.map((cat) => (
+                {categories.map((cat: { id: string; name: string }) => (
                   <option key={cat.id} value={cat.name}>{cat.name}</option>
                 ))}
               </select>
@@ -131,7 +131,16 @@ export function AdminProductsPage({ onNavigate }: AdminProductsPageProps) {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
+              {products.map((product: {
+                id: string;
+                title: string;
+                sku?: string | null;
+                category: string;
+                priceCents: number;
+                stock: number;
+                isActive: boolean;
+                imageUrl: string | null;
+              }) => (
                 <tr key={product.id}>
                   <td>
                     <div className="product-cell">

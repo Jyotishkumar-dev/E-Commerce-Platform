@@ -58,7 +58,6 @@ export const createCouponSchema = z.object({
   usageLimit: z.coerce.number().int().positive().optional(),
   startsAt: z.string().datetime().optional(),
   expiresAt: z.string().datetime().optional(),
-  description: z.string().trim().max(500).optional(),
 });
 
 export const updateCouponSchema = createCouponSchema.partial().extend({

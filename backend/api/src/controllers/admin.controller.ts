@@ -15,17 +15,16 @@ export class AdminController {
 
   static async getOrders(req: Request, res: Response, next: NextFunction) {
     try {
-      const filters = {
+      const result = await AdminService.getAllOrders({
         search: req.query.search as string | undefined,
-        status: req.query.status as string | undefined,
-        paymentStatus: req.query.paymentStatus as string | undefined,
-        paymentProvider: req.query.paymentProvider as string | undefined,
+        status: req.query.status as any,
+        paymentStatus: req.query.paymentStatus as any,
+        paymentProvider: req.query.paymentProvider as any,
         dateFrom: req.query.dateFrom as string | undefined,
         dateTo: req.query.dateTo as string | undefined,
         page: req.query.page ? Number(req.query.page) : 1,
         limit: req.query.limit ? Number(req.query.limit) : 20,
-      };
-      const result = await AdminService.getAllOrders(filters);
+      });
       return ok(res, req, result, 'Orders fetched successfully');
     } catch (error) {
       next(error);
