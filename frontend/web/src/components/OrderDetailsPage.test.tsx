@@ -79,7 +79,7 @@ describe('OrderDetailsPage', () => {
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
     expect(screen.getByText(/Order #ORD_1/)).toBeInTheDocument();
     expect(screen.getByText('Test Product')).toBeInTheDocument();
-    expect(screen.getByText('₹1,50,000')).toBeInTheDocument();
+    expect(screen.getByText('₹1,500')).toBeInTheDocument();
   });
 
   it('shows delivery address', () => {
