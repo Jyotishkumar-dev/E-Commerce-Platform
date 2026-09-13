@@ -229,7 +229,7 @@ export function OrderHistoryPage() {
       </section>
 
       {showCancelConfirm && selectedOrder && (
-        <div className="modal-backdrop" onMouseDown={() => setShowCancelConfirm(false)}>
+        <div className="modal-backdrop" onClick={() => setShowCancelConfirm(false)}>
           <div className="order-detail-modal" onClick={(e) => e.stopPropagation()}>
             <button type="button" className="modal-close" onClick={() => setShowCancelConfirm(false)} aria-label="Close">
               ×
@@ -249,7 +249,7 @@ export function OrderHistoryPage() {
       )}
 
       {showRefundConfirm && selectedOrder && (
-        <div className="modal-backdrop" onMouseDown={() => setShowRefundConfirm(false)}>
+        <div className="modal-backdrop" onClick={() => setShowRefundConfirm(false)}>
           <div className="order-detail-modal" onClick={(e) => e.stopPropagation()}>
             <button type="button" className="modal-close" onClick={() => setShowRefundConfirm(false)} aria-label="Close">
               ×

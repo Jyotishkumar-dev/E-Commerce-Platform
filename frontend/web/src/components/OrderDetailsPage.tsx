@@ -352,7 +352,7 @@ export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
       )}
 
       {showCancelConfirm && (
-        <div className="modal-backdrop" onMouseDown={() => setShowCancelConfirm(false)}>
+        <div className="modal-backdrop" onClick={() => setShowCancelConfirm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="cancel-confirm-title">
             <div className="modal-content">
               <h2 id="cancel-confirm-title">Cancel Order</h2>
@@ -371,7 +371,7 @@ export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
       )}
 
       {showRefundConfirm && (
-        <div className="modal-backdrop" onMouseDown={() => setShowRefundConfirm(false)}>
+        <div className="modal-backdrop" onClick={() => setShowRefundConfirm(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="refund-confirm-title">
             <div className="modal-content">
               <h2 id="refund-confirm-title">Request Refund</h2>
