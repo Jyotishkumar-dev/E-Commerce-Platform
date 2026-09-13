@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 import { OrderDetailsPage } from './OrderDetailsPage';
-import { useOrders, useOrder } from '../hooks/useOrders';
+import { useOrders, useOrder, formatAddress } from '../hooks/useOrders';
 import { usePayments } from '../hooks/usePayments';
 
 vi.mock('../hooks/useOrders');
@@ -11,6 +11,10 @@ vi.mock('../hooks/usePayments');
 vi.mock('../lib/api', () => ({
   messageOf: vi.fn((e: any) => (e instanceof Error ? e.message : 'Error')),
 }));
+
+beforeEach(() => {
+  vi.mocked(formatAddress).mockReturnValue('123 Test St, Mumbai, Maharashtra 400001, India');
+});
 
 const createWrapper = () => {
   const queryClient = new QueryClient({

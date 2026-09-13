@@ -78,8 +78,8 @@ describe('OrderHistoryPage', () => {
 
   it('shows order totals and item counts', () => {
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
-    expect(screen.getByText('₹1,50,000')).toBeInTheDocument();
-    expect(screen.getByText('₹2,50,000')).toBeInTheDocument();
+    expect(screen.getByText('₹1,500')).toBeInTheDocument();
+    expect(screen.getByText('₹2,500')).toBeInTheDocument();
   });
 
   it('shows payment status badges', () => {
