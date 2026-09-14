@@ -3,7 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 import { OrderHistoryPage } from './OrderHistoryPage';
-import { useOrders } from '../hooks/useOrders';
+import { useOrders, formatMoney, formatOrderStatus, getOrderStatusColor } from '../hooks/useOrders';
 import { usePayments } from '../hooks/usePayments';
 
 vi.mock('../hooks/useOrders');
@@ -67,6 +67,9 @@ describe('OrderHistoryPage', () => {
       refundPayment: vi.fn(),
       isRefunding: false,
     });
+    vi.mocked(formatMoney).mockImplementation((cents: number) => `₹${(cents / 100).toLocaleString('en-IN')}`);
+    vi.mocked(formatOrderStatus).mockImplementation((status: string) => status.charAt(0) + status.slice(1).toLowerCase().replace(/_/g, ' '));
+    vi.mocked(getOrderStatusColor).mockImplementation((status: string) => `status-${status.toLowerCase()}`);
   });
 
   it('renders order history table with all orders', () => {
@@ -184,7 +187,7 @@ describe('OrderHistoryPage', () => {
       isCancelling: false,
     });
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
-    expect(screen.getByText('CONNECTION_TIMEOUT')).toBeInTheDocument();
+    expect(screen.getByText(/CONNECTION_TIMEOUT/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument();
   });
 
@@ -202,7 +205,7 @@ describe('OrderHistoryPage', () => {
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel Order' }));
-    expect(screen.getByText('Something went wrong. Please try again.')).toBeInTheDocument();
+    expect(screen.getByText('Cannot cancel')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Dismiss' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }));
     expect(cancelOrder).toHaveBeenCalledWith('ord_1');

@@ -150,7 +150,8 @@ describe('OrderDetailsPage', () => {
     const buttons = screen.getAllByRole('button', { name: 'Cancel Order' });
     fireEvent.click(buttons[0]);
     expect(screen.getByText('This will cancel your order and release the items back to inventory. This action cannot be undone.')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel Order' }));
+    const confirmButtons = screen.getAllByRole('button', { name: 'Cancel Order' });
+    fireEvent.click(confirmButtons[1]);
     await waitFor(() => expect(cancelOrder).toHaveBeenCalled());
   });
 
@@ -162,7 +163,9 @@ describe('OrderDetailsPage', () => {
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
     const buttons = screen.getAllByRole('button', { name: 'Request Refund', exact: false });
     fireEvent.click(buttons[0]);
-    expect(screen.getByText('Refund processed successfully.')).toBeInTheDocument();
+    const refundButtons = screen.getAllByRole('button', { name: 'Request Refund', exact: false });
+    fireEvent.click(refundButtons[1]);
+    await waitFor(() => expect(screen.getByText('Refund processed successfully.')).toBeInTheDocument());
     expect(refundPayment).toHaveBeenCalledWith('ord_1');
   });
 
