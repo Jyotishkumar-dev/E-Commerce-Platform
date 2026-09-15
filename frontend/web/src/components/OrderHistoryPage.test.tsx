@@ -67,7 +67,7 @@ describe('OrderHistoryPage', () => {
       refundPayment: vi.fn(),
       isRefunding: false,
     });
-    vi.mocked(formatMoney).mockImplementation((cents: number) => `₹${(cents / 100).toLocaleString('en-IN')}`);
+    vi.mocked(formatMoney).mockImplementation((cents: number | null | undefined) => `₹${((cents ?? 0) / 100).toLocaleString('en-IN')}`);
     vi.mocked(formatOrderStatus).mockImplementation((status: string) => status.charAt(0) + status.slice(1).toLowerCase().replace(/_/g, ' '));
     vi.mocked(getOrderStatusColor).mockImplementation((status: string) => `status-${status.toLowerCase()}`);
   });

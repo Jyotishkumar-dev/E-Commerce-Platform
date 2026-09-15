@@ -161,9 +161,9 @@ describe('OrderDetailsPage', () => {
     vi.mocked(useOrders).mockReturnValue({ orders: [mockOrder], cancelOrder: vi.fn(), isCancelling: false } as any);
     vi.mocked(usePayments).mockReturnValue({ retryPayment: vi.fn(), cancelPayment: vi.fn(), refundPayment, isRefunding: false, isCancelling: false } as any);
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
-    const buttons = screen.getAllByRole('button', { name: 'Request Refund', exact: false });
+    const buttons = screen.getAllByRole('button', { name: 'Request Refund' } as any);
     fireEvent.click(buttons[0]);
-    const refundButtons = screen.getAllByRole('button', { name: 'Request Refund', exact: false });
+    const refundButtons = screen.getAllByRole('button', { name: 'Request Refund' } as any);
     fireEvent.click(refundButtons[1]);
     await waitFor(() => expect(screen.getByText('Refund processed successfully.')).toBeInTheDocument());
     expect(refundPayment).toHaveBeenCalledWith('ord_1');
