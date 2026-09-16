@@ -82,8 +82,8 @@ export function InventoryPage({ onBack }: InventoryPageProps) {
 
       {isError && (
         <div className="dashboard-error" role="alert">
-          <p>Failed to load inventory: {error}</p>
-          <button type="button" className="primary" onClick={refetch}>Retry</button>
+          <p>Failed to load inventory: {error?.message ?? 'Unknown error'}</p>
+          <button type="button" className="primary" onClick={() => refetch()}>Retry</button>
         </div>
       )}
 
