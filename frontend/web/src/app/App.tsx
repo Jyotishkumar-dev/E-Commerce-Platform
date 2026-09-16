@@ -19,6 +19,10 @@ import { OrderHistoryPage } from '../components/OrderHistoryPage';
 import { AddressList } from '../components/AddressList';
 import { AddressForm } from '../components/AddressForm';
 import { ShopvibeLogo } from '../components/ShopvibeLogo';
+import { AdminSidebar } from '../components/AdminSidebar';
+import { ProductCreatePage } from '../components/ProductCreatePage';
+import { InventoryPage } from '../components/InventoryPage';
+import { AnalyticsPage } from '../components/AnalyticsPage';
 import { AdminDashboard } from '../components/AdminDashboard';
 import { AdminProductsPage } from '../components/AdminProductsPage';
 import { AdminOrdersPage } from '../components/AdminOrdersPage';
@@ -50,7 +54,7 @@ export function App() {
     moveToCart: moveWishlistItemToCart,
   } = useWishlist();
 
-  const [page, setPage] = useState<'shop' | 'cart' | 'wishlist' | 'order-history' | 'order-detail' | 'admin' | 'checkout' | 'confirmation' | 'admin-dashboard' | 'admin-products' | 'admin-orders' | 'admin-customers' | 'admin-categories' | 'admin-coupons'>('shop');
+  const [page, setPage] = useState<'shop' | 'cart' | 'wishlist' | 'order-history' | 'order-detail' | 'admin' | 'checkout' | 'confirmation' | 'admin-dashboard' | 'admin-products' | 'admin-products-new' | 'admin-orders' | 'admin-customers' | 'admin-inventory' | 'admin-categories' | 'admin-coupons' | 'admin-analytics'>('shop');
   const [auth, setAuth] = useState<'login' | 'register' | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [notice, setNotice] = useState('');
@@ -237,6 +241,23 @@ export function App() {
         </div>
       )}
 
+      {page.startsWith('admin') && !user?.isAdmin && (
+        <main className="admin-main">
+          <div className="admin-access-denied">
+            <h2>Access Denied</h2>
+            <p>You don't have permission to access the admin panel.</p>
+            <button type="button" className="primary" onClick={() => setPage('shop')}>
+              Back to Shop
+            </button>
+          </div>
+        </main>
+      )}
+
+      {page.startsWith('admin') && user?.isAdmin && (
+        <div className="admin-layout">
+          <AdminSidebar currentPage={page} onNavigate={setPage} />
+          <div>
+
       {page === 'shop' && (
         <Shop
           onAdd={add}
@@ -273,7 +294,10 @@ export function App() {
         <AdminDashboard />
       )}
       {page === 'admin-products' && (
-        <AdminProductsPage onNavigate={() => setPage('admin-dashboard')} />
+        <AdminProductsPage onNavigate={(path) => {
+          if (path.includes('products/new')) setPage('admin-products-new');
+          else setPage('admin-dashboard');
+        }} />
       )}
       {page === 'admin-orders' && (
         <AdminOrdersPage onBack={() => setPage('admin-dashboard')} />
@@ -286,6 +310,18 @@ export function App() {
       )}
       {page === 'admin-coupons' && (
         <AdminCouponsPage onBack={() => setPage('admin-dashboard')} />
+      )}
+      {page === 'admin-products-new' && (
+        <ProductCreatePage onBack={() => setPage('admin-products')} />
+      )}
+      {page === 'admin-inventory' && (
+        <InventoryPage onBack={() => setPage('admin-dashboard')} />
+      )}
+      {page === 'admin-analytics' && (
+        <AnalyticsPage onBack={() => setPage('admin-dashboard')} />
+      )}
+          </div>
+        </div>
       )}
 
       {page === 'checkout' && (

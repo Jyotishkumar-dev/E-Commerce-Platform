@@ -12,6 +12,9 @@ import {
   updateCouponSchema,
   toggleCouponActiveSchema,
 } from '../validators/admin.validator.js';
+import { createProductSchema, updateProductSchema, updateStockSchema } from '../validators/product.validator.js';
+import { analyticsQuerySchema } from '../validators/admin.validator.js';
+import { couponValidateSchema } from '../validators/admin.validator.js';
 
 const router = Router();
 
@@ -27,6 +30,18 @@ router.patch('/orders/:orderId/status', validateBody(updateOrderStatusSchema), A
 
 // Products
 router.get('/products', validateQuery(adminProductFiltersSchema), AdminController.getProducts);
+router.post('/products', validateBody(createProductSchema), AdminController.createProduct);
+router.patch('/products/:productId', validateBody(updateProductSchema), AdminController.updateProduct);
+router.patch('/products/:productId/stock', validateBody(updateStockSchema), AdminController.updateProductStock);
+
+// Analytics
+router.get('/analytics', validateQuery(analyticsQuerySchema), AdminController.getAnalytics);
+
+// Coupon Validation
+router.post('/coupons/validate', validateBody(couponValidateSchema), AdminController.validateCoupon);
+
+// Inventory
+router.get('/inventory', AdminController.getInventory);
 
 // Categories
 router.get('/categories', AdminController.getCategories);

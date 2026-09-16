@@ -555,4 +555,231 @@ export class AdminService {
       data: { isActive },
     });
   }
+
+  static async createProduct(input: {
+    title: string;
+    slug?: string;
+    description?: string;
+    priceCents: number;
+    compareAtPriceCents?: number;
+    category?: string;
+    categoryId?: string;
+    sku?: string;
+    brand?: string;
+    imageUrl?: string;
+    stock: number;
+    sellerId: string;
+  }) {
+    if (input.sku) {
+      const existing = await prisma.product.findUnique({ where: { sku: input.sku.toUpperCase() } });
+      if (existing) {
+        throw new ConflictError('A product with this SKU already exists.');
+      }
+    }
+
+    return prisma.product.create({
+      data: {
+        title: input.title,
+        slug: input.slug,
+        description: input.description,
+        priceCents: input.priceCents,
+        compareAtPriceCents: input.compareAtPriceCents,
+        category: input.category ?? 'General',
+        categoryId: input.categoryId,
+        sku: input.sku ? input.sku.toUpperCase() : undefined,
+        brand: input.brand,
+        imageUrl: input.imageUrl,
+        stock: input.stock,
+        sellerId: input.sellerId,
+      },
+    });
+  }
+
+  static async updateProduct(productId: string, input: {
+    title?: string;
+    slug?: string;
+    description?: string;
+    priceCents?: number;
+    compareAtPriceCents?: number;
+    category?: string;
+    categoryId?: string | null;
+    sku?: string;
+    brand?: string;
+    imageUrl?: string | null;
+    stock?: number;
+    isActive?: boolean;
+  }) {
+    const existing = await prisma.product.findUnique({ where: { id: productId } });
+    if (!existing) {
+      throw new NotFoundError('Product not found.');
+    }
+
+    if (input.sku && input.sku.toUpperCase() !== existing.sku) {
+      const skuExists = await prisma.product.findUnique({ where: { sku: input.sku.toUpperCase() } });
+      if (skuExists) {
+        throw new ConflictError('A product with this SKU already exists.');
+      }
+    }
+
+    if (input.priceCents !== undefined && input.priceCents < 0) {
+      throw new BadRequestError('Price must be greater than or equal to zero.');
+    }
+
+    if (input.stock !== undefined && input.stock < 0) {
+      throw new BadRequestError('Stock must be greater than or equal to zero.');
+    }
+
+    return prisma.product.update({
+      where: { id: productId },
+      data: {
+        ...input,
+        sku: input.sku ? input.sku.toUpperCase() : undefined,
+      },
+    });
+  }
+
+  static async updateProductStock(productId: string, stock: number) {
+    if (stock < 0) {
+      throw new BadRequestError('Stock must be greater than or equal to zero.');
+    }
+
+    const existing = await prisma.product.findUnique({ where: { id: productId } });
+    if (!existing) {
+      throw new NotFoundError('Product not found.');
+    }
+
+    return prisma.product.update({
+      where: { id: productId },
+      data: { stock },
+    });
+  }
+
+  static async getAnalytics(filters: {
+    dateFrom?: string;
+    dateTo?: string;
+    period?: string;
+  } = {}) {
+    let dateWhere: Record<string, Date> = {};
+    const now = new Date();
+
+    if (filters.period) {
+      const periodMap: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90 };
+      const days = periodMap[filters.period];
+      if (days) {
+        dateWhere = { gte: new Date(now.getTime() - days * 24 * 60 * 60 * 1000) };
+      }
+    } else if (filters.dateFrom || filters.dateTo) {
+      if (filters.dateFrom) dateWhere.gte = new Date(filters.dateFrom);
+      if (filters.dateTo) dateWhere.lte = new Date(filters.dateTo);
+    }
+
+    const where = dateWhere.gte || dateWhere.lte ? { createdAt: dateWhere } : {};
+
+    const [revenueData, orderStatusData, topProducts, totalOrders, totalRevenue] = await Promise.all([
+      prisma.order.groupBy({
+        by: ['createdAt'],
+        where: { ...where, payment: { status: 'SUCCESS' } },
+        _sum: { totalCents: true },
+        orderBy: { createdAt: 'asc' },
+      }),
+      prisma.order.groupBy({
+        by: ['status'],
+        where,
+        _count: { id: true },
+      }),
+      prisma.orderItem.groupBy({
+        by: ['productId', 'productTitle'],
+        where: { order: where },
+        _sum: { quantity: true, subtotalCents: true },
+        orderBy: { _sum: { quantity: 'desc' } },
+        take: 10,
+      }),
+      prisma.order.count({ where }),
+      prisma.order.aggregate({ where, _sum: { totalCents: true } }),
+    ]);
+
+    const revenueTrend = revenueData.map((r) => ({
+      date: r.createdAt.toISOString().split('T')[0],
+      revenueCents: r._sum.totalCents ?? 0,
+    }));
+
+    const statusDistribution = orderStatusData.map((s) => ({
+      status: s.status,
+      count: s._count.id,
+    }));
+
+    const topProductsData = topProducts.map((p) => ({
+      productTitle: p.productTitle,
+      unitsSold: p._sum.quantity ?? 0,
+      revenueCents: p._sum.subtotalCents ?? 0,
+    }));
+
+    return {
+      revenueTrend,
+      statusDistribution,
+      topProducts: topProductsData,
+      totalOrders,
+      totalRevenue: totalRevenue._sum.totalCents ?? 0,
+      averageOrderValue: totalOrders > 0 ? Math.round((totalRevenue._sum.totalCents ?? 0) / totalOrders) : 0,
+    };
+  }
+
+  static async validateCoupon(input: { code: string; minimumOrderValueCents?: number }) {
+    const code = input.code.toUpperCase().trim();
+    const coupon = await prisma.coupon.findUnique({ where: { code } });
+
+    if (!coupon) {
+      throw new NotFoundError('Coupon not found.');
+    }
+    if (!coupon.isActive) {
+      throw new BadRequestError('Coupon is not active.');
+    }
+    if (coupon.expiresAt && coupon.expiresAt < new Date()) {
+      throw new BadRequestError('Coupon has expired.');
+    }
+    if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+      throw new BadRequestError('Coupon usage limit reached.');
+    }
+    if (input.minimumOrderValueCents !== undefined && input.minimumOrderValueCents < coupon.minimumOrderValueCents) {
+      throw new BadRequestError(`Minimum order value of ${coupon.minimumOrderValueCents} cents required.`);
+    }
+
+    return {
+      valid: true,
+      coupon: {
+        id: coupon.id,
+        code: coupon.code,
+        type: coupon.type,
+        value: coupon.value,
+        minimumOrderValueCents: coupon.minimumOrderValueCents,
+        maximumDiscountCents: coupon.maximumDiscountCents,
+        usageLimit: coupon.usageLimit,
+        usedCount: coupon.usedCount,
+        description: coupon.description,
+        isActive: coupon.isActive,
+      },
+    };
+  }
+
+  static async getInventory() {
+    const products = await prisma.product.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        title: true,
+        sku: true,
+        stock: true,
+        category: true,
+        categoryRef: { select: { id: true, name: true } },
+        isActive: true,
+      },
+      orderBy: { stock: 'asc' },
+    });
+
+    return products.map((p) => ({
+      ...p,
+      lowStock: p.stock > 0 && p.stock <= LOW_STOCK_THRESHOLD,
+      outOfStock: p.stock <= 0,
+    }));
+  }
 }

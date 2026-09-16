@@ -69,6 +69,37 @@ export class AdminController {
     }
   }
 
+  static async createProduct(req: Request, res: Response, next: NextFunction) {
+    try {
+      const sellerId = req.user!.id;
+      const product = await AdminService.createProduct({ ...req.body, sellerId });
+      return created(res, req, { product }, 'Product created successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateProduct(req: Request, res: Response, next: NextFunction) {
+    try {
+      const productId = getParam(req, 'productId');
+      const product = await AdminService.updateProduct(productId, req.body);
+      return ok(res, req, { product }, 'Product updated successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateProductStock(req: Request, res: Response, next: NextFunction) {
+    try {
+      const productId = getParam(req, 'productId');
+      const { stock } = req.body;
+      const product = await AdminService.updateProductStock(productId, stock);
+      return ok(res, req, { product }, 'Stock updated successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getCategories(req: Request, res: Response, next: NextFunction) {
     try {
       const categories = await AdminService.getAllCategories();
@@ -152,6 +183,38 @@ export class AdminController {
       const { isActive } = req.body;
       const coupon = await AdminService.toggleCouponActive(couponId, isActive);
       return ok(res, req, { coupon }, `Coupon ${isActive ? 'activated' : 'deactivated'} successfully`);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getAnalytics(req: Request, res: Response, next: NextFunction) {
+    try {
+      const analytics = await AdminService.getAnalytics({
+        dateFrom: req.query.dateFrom as string | undefined,
+        dateTo: req.query.dateTo as string | undefined,
+        period: req.query.period as string | undefined,
+      });
+      return ok(res, req, analytics, 'Analytics fetched successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async validateCoupon(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { code, minimumOrderValueCents } = req.body;
+      const result = await AdminService.validateCoupon({ code, minimumOrderValueCents });
+      return ok(res, req, result, 'Coupon validated successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async getInventory(req: Request, res: Response, next: NextFunction) {
+    try {
+      const inventory = await AdminService.getInventory();
+      return ok(res, req, { inventory }, 'Inventory fetched successfully');
     } catch (error) {
       next(error);
     }

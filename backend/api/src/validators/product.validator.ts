@@ -29,4 +29,8 @@ export const createProductSchema = z.object({
   stock: z.coerce.number().int().nonnegative().default(0),
 });
 
+export const updateStockSchema = z.object({
+  stock: z.coerce.number().int().nonnegative(),
+});
+
 export const updateProductSchema = createProductSchema.partial();

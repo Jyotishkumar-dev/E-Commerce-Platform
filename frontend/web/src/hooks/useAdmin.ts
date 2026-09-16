@@ -3,6 +3,27 @@ import { useCallback } from 'react';
 import { api, type Order, type Product, type Category, type User, type Coupon, messageOf } from '../lib/api';
 import { formatMoney } from './useOrders';
 
+export interface AnalyticsData {
+  revenueTrend: Array<{ date: string; revenueCents: number }>;
+  statusDistribution: Array<{ status: string; count: number }>;
+  topProducts: Array<{ productTitle: string; unitsSold: number; revenueCents: number }>;
+  totalOrders: number;
+  totalRevenue: number;
+  averageOrderValue: number;
+}
+
+export interface InventoryItem {
+  id: string;
+  title: string;
+  sku: string | null;
+  stock: number;
+  category: string;
+  categoryRef: { id: string; name: string } | null;
+  isActive: boolean;
+  lowStock: boolean;
+  outOfStock: boolean;
+}
+
 export interface AdminDashboardMetrics {
   users: number;
   products: number;
@@ -460,3 +481,118 @@ export function formatPaymentStatus(status: string): string {
 }
 
 export { formatMoney };
+
+export function useAdminProductCreate() {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (input: {
+      title: string;
+      priceCents: number;
+      stock: number;
+      description?: string;
+      category?: string;
+      sku?: string;
+      brand?: string;
+      imageUrl?: string;
+    }) => {
+      const response = await api.post('/admin/products', input);
+      return response.data?.data?.product;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
+    },
+  });
+
+  return { createProduct: mutation.mutateAsync, isCreating: mutation.isPending };
+}
+
+export function useAdminProductUpdate(productId: string | null) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (input: Partial<Product>) => {
+      const response = await api.patch(`/admin/products/${productId}`, input);
+      return response.data?.data?.product;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
+    enabled: Boolean(productId),
+  });
+
+  return { updateProduct: mutation.mutateAsync, isUpdating: mutation.isPending };
+}
+
+export function useAdminProductStock(productId: string | null) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (stock: number) => {
+      const response = await api.patch(`/admin/products/${productId}/stock`, { stock });
+      return response.data?.data?.product;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'inventory'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
+    enabled: Boolean(productId),
+  });
+
+  return { updateStock: mutation.mutateAsync, isUpdating: mutation.isPending };
+}
+
+export function useAdminAnalytics(filters?: { period?: string; dateFrom?: string; dateTo?: string }) {
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<AnalyticsData>({
+    queryKey: ['admin', 'analytics', filters],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters?.period) params.set('period', filters.period);
+      if (filters?.dateFrom) params.set('dateFrom', filters.dateFrom);
+      if (filters?.dateTo) params.set('dateTo', filters.dateTo);
+      const response = await api.get(`/admin/analytics?${params.toString()}`);
+      return response.data?.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  return { data, isLoading, isError, error, refetch };
+}
+
+export function useAdminInventory() {
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<InventoryItem[]>({
+    queryKey: ['admin', 'inventory'],
+    queryFn: async () => {
+      const response = await api.get('/admin/inventory');
+      return response.data?.data?.inventory ?? [];
+    },
+    staleTime: 30 * 1000,
+  });
+
+  return { inventory: data ?? [], isLoading, isError, error: error ? messageOf(error) : null, refetch };
+}
+
+export function useCouponValidate() {
+  const mutation = useMutation({
+    mutationFn: async (input: { code: string; minimumOrderValueCents?: number }) => {
+      const response = await api.post('/admin/coupons/validate', input);
+      return response.data?.data;
+    },
+  });
+
+  return { validateCoupon: mutation.mutateAsync, isValidating: mutation.isPending };
+}

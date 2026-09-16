@@ -67,3 +67,14 @@ export const updateCouponSchema = createCouponSchema.partial().extend({
 export const toggleCouponActiveSchema = z.object({
   isActive: z.boolean(),
 });
+
+export const analyticsQuerySchema = z.object({
+  period: z.enum(['7d', '30d', '90d']).optional(),
+  dateFrom: z.string().datetime().optional(),
+  dateTo: z.string().datetime().optional(),
+});
+
+export const couponValidateSchema = z.object({
+  code: z.string().trim().min(1),
+  minimumOrderValueCents: z.coerce.number().int().nonnegative().optional(),
+});
