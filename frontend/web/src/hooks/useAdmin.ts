@@ -519,17 +519,24 @@ export function useAdminProductUpdate(productId: string | null) {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
     },
-    enabled: Boolean(productId),
   });
 
-  return { updateProduct: mutation.mutateAsync, isUpdating: mutation.isPending };
+  const updateProduct = useCallback(
+    async (input: Partial<Product>) => {
+      if (!productId) throw new Error('Product ID required');
+      return mutation.mutateAsync(input);
+    },
+    [mutation, productId],
+  );
+
+  return { updateProduct, isUpdating: mutation.isPending };
 }
 
-export function useAdminProductStock(productId: string | null) {
+export function useAdminProductStock() {
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (stock: number) => {
+    mutationFn: async ({ productId, stock }: { productId: string; stock: number }) => {
       const response = await api.patch(`/admin/products/${productId}/stock`, { stock });
       return response.data?.data?.product;
     },
@@ -538,7 +545,6 @@ export function useAdminProductStock(productId: string | null) {
       void queryClient.invalidateQueries({ queryKey: ['admin', 'inventory'] });
       void queryClient.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
     },
-    enabled: Boolean(productId),
   });
 
   return { updateStock: mutation.mutateAsync, isUpdating: mutation.isPending };

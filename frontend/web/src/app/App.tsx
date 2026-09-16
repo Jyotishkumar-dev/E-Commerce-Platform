@@ -241,7 +241,7 @@ export function App() {
         </div>
       )}
 
-      {page.startsWith('admin') && !user?.isAdmin && (
+      {page.startsWith('admin') && (user?.role !== 'ADMIN') && (
         <main className="admin-main">
           <div className="admin-access-denied">
             <h2>Access Denied</h2>
@@ -255,7 +255,7 @@ export function App() {
 
       {page.startsWith('admin') && user?.role === 'ADMIN' && (
         <div className="admin-layout">
-          <AdminSidebar currentPage={page} onNavigate={setPage} />
+          <AdminSidebar currentPage={page} onNavigate={(p) => setPage(p as any)} />
           <div>
 
       {page === 'shop' && (

@@ -10,7 +10,7 @@ type StockFilter = 'all' | 'in-stock' | 'low-stock' | 'out-of-stock';
 
 export function InventoryPage({ onBack }: InventoryPageProps) {
   const { inventory, isLoading, isError, error, refetch } = useAdminInventory();
-  const { updateStock, isUpdating } = useAdminProductStock(null);
+  const { updateStock, isUpdating } = useAdminProductStock();
   const [filter, setFilter] = useState<StockFilter>('all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -33,7 +33,7 @@ export function InventoryPage({ onBack }: InventoryPageProps) {
     const stock = Number(editValue);
     if (Number.isNaN(stock) || stock < 0) return;
     try {
-      await updateStock(id, stock);
+      await updateStock({ productId: id, stock });
     } catch {
       // Error handled by mutation
     }

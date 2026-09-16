@@ -68,8 +68,8 @@ export function AnalyticsPage({ onBack }: AnalyticsPageProps) {
 
       {isError && (
         <div className="dashboard-error" role="alert">
-          <p>Failed to load analytics: {error}</p>
-          <button type="button" className="primary" onClick={refetch}>Retry</button>
+          <p>Failed to load analytics: {error?.message ?? 'Unknown error'}</p>
+          <button type="button" className="primary" onClick={() => refetch()}>Retry</button>
         </div>
       )}
 
