@@ -577,10 +577,12 @@ export class AdminService {
       }
     }
 
+    const slug = input.slug || input.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
     return prisma.product.create({
       data: {
         title: input.title,
-        slug: input.slug,
+        slug,
         description: input.description,
         priceCents: input.priceCents,
         compareAtPriceCents: input.compareAtPriceCents,
@@ -755,7 +757,6 @@ export class AdminService {
         maximumDiscountCents: coupon.maximumDiscountCents,
         usageLimit: coupon.usageLimit,
         usedCount: coupon.usedCount,
-        description: coupon.description,
         isActive: coupon.isActive,
       },
     };
