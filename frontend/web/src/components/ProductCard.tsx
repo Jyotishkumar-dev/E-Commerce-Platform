@@ -67,26 +67,31 @@ export function ProductCard({
       aria-label={`View details for ${product.title}`}
     >
       <div className="product-card-image-wrap">
-        {product.imageUrl && !imageError ? (
-          <>
-            {!imageLoaded && (
-              <div className="product-card-image-skeleton" aria-hidden="true">
-                <ImagePlaceholder size="md" />
-              </div>
-            )}
-            <img
-              src={product.imageUrl}
-              alt={product.title}
-              className="product-card-image"
-              loading="lazy"
-              style={{ opacity: imageLoaded ? 1 : 0 }}
-              onLoad={() => setImageLoaded(true)}
-              onError={() => setImageError(true)}
-            />
-          </>
-        ) : (
-          <ImagePlaceholder size="md" label={product.title} />
-        )}
+        {(() => {
+          const imgUrl = product.imageUrl
+            ?? product.images?.[0]?.url
+            ?? null;
+          return imgUrl && !imageError ? (
+            <>
+              {!imageLoaded && (
+                <div className="product-card-image-skeleton" aria-hidden="true">
+                  <ImagePlaceholder size="md" />
+                </div>
+              )}
+              <img
+                src={imgUrl}
+                alt={product.title}
+                className="product-card-image"
+                loading="lazy"
+                style={{ opacity: imageLoaded ? 1 : 0 }}
+                onLoad={() => setImageLoaded(true)}
+                onError={() => setImageError(true)}
+              />
+            </>
+          ) : (
+            <ImagePlaceholder size="md" label={product.title} />
+          );
+        })()}
 
         {/* Stock Status Badge */}
         <div className="product-card-badges">

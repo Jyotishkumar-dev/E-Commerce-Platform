@@ -21,6 +21,7 @@ import { AddressForm } from '../components/AddressForm';
 import { ShopvibeLogo } from '../components/ShopvibeLogo';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { ProductCreatePage } from '../components/ProductCreatePage';
+import { ProductEditPage } from '../components/ProductEditPage';
 import { InventoryPage } from '../components/InventoryPage';
 import { AnalyticsPage } from '../components/AnalyticsPage';
 import { AdminDashboard } from '../components/AdminDashboard';
@@ -54,12 +55,13 @@ export function App() {
     moveToCart: moveWishlistItemToCart,
   } = useWishlist();
 
-  const [page, setPage] = useState<'shop' | 'cart' | 'wishlist' | 'order-history' | 'order-detail' | 'admin' | 'checkout' | 'confirmation' | 'admin-dashboard' | 'admin-products' | 'admin-products-new' | 'admin-orders' | 'admin-customers' | 'admin-inventory' | 'admin-categories' | 'admin-coupons' | 'admin-analytics'>('shop');
+  const [page, setPage] = useState<'shop' | 'cart' | 'wishlist' | 'order-history' | 'order-detail' | 'admin' | 'checkout' | 'confirmation' | 'admin-dashboard' | 'admin-products' | 'admin-products-new' | 'admin-products-edit' | 'admin-orders' | 'admin-customers' | 'admin-inventory' | 'admin-categories' | 'admin-coupons' | 'admin-analytics'>('shop');
   const [auth, setAuth] = useState<'login' | 'register' | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [notice, setNotice] = useState('');
   const [confirmationOrderId, setConfirmationOrderId] = useState<string | null>(null);
   const [detailOrderId, setDetailOrderId] = useState<string | null>(null);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [addressModal, setAddressModal] = useState<{ mode: 'manage' | 'add'; editingId?: string } | null>(null);
 
   useEffect(() => {
@@ -68,7 +70,6 @@ export function App() {
     else if (page === 'wishlist') setDocumentTitle(PAGE_TITLES.WISHLIST);
     else if (page === 'order-history') setDocumentTitle(PAGE_TITLES.ORDERS);
     else if (page === 'admin' || page.startsWith('admin-')) setDocumentTitle(PAGE_TITLES.ADMIN);
-    else if (page === 'checkout') setDocumentTitle('Checkout');
     else if (page === 'confirmation') setDocumentTitle('Order Confirmed');
     else if (page === 'order-detail') setDocumentTitle('Order Details');
   }, [page]);
@@ -294,10 +295,29 @@ export function App() {
         <AdminDashboard />
       )}
       {page === 'admin-products' && (
-        <AdminProductsPage onNavigate={(path) => {
-          if (path.includes('products/new')) setPage('admin-products-new');
-          else setPage('admin-dashboard');
-        }} />
+        <AdminProductsPage
+          onNavigate={async (path) => {
+            if (path.includes('products/new')) {
+              setPage('admin-products-new');
+            } else {
+              const productId = path.split('/products/')[1];
+              if (productId) {
+                try {
+                  const res = await api.get(`/products/${productId}`);
+                  const product = res.data?.data?.product;
+                  if (product) {
+                    setEditingProductId(product.id);
+                    setPage('admin-products-edit');
+                  }
+                } catch {
+                  setPage('admin-dashboard');
+                }
+              } else {
+                setPage('admin-dashboard');
+              }
+            }
+          }}
+        />
       )}
       {page === 'admin-orders' && (
         <AdminOrdersPage onBack={() => setPage('admin-dashboard')} />
@@ -313,6 +333,25 @@ export function App() {
       )}
       {page === 'admin-products-new' && (
         <ProductCreatePage onBack={() => setPage('admin-products')} />
+      )}
+      {page === 'admin-products-edit' && editingProductId && (
+        <ProductEditPage
+          product={{
+            id: editingProductId,
+            title: '',
+            description: null,
+            priceCents: 0,
+            currency: 'INR',
+            category: '',
+            imageUrl: null,
+            images: [],
+            stock: 0,
+          } as Product}
+          onBack={() => {
+            setEditingProductId(null);
+            setPage('admin-products');
+          }}
+        />
       )}
       {page === 'admin-inventory' && (
         <InventoryPage onBack={() => setPage('admin-dashboard')} />
