@@ -17,6 +17,12 @@ export type Product = {
   brand?: string | null;
   sku?: string | null;
   imageUrl: string | null;
+  images: Array<{
+    id: string;
+    url: string;
+    altText: string | null;
+    sortOrder: number;
+  }>;
   stock: number;
   isActive?: boolean;
   seller?: { name: string | null };
