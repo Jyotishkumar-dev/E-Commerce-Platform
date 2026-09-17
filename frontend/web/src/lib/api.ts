@@ -22,6 +22,14 @@ export type Product = {
   seller?: { name: string | null };
 };
 
+export type ProductImage = {
+  id: string;
+  url: string;
+  altText: string;
+  sortOrder: number;
+  isPrimary: boolean;
+};
+
 export type CartItem = {
   id: string;
   cartId?: string;

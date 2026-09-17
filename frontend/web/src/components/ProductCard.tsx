@@ -1,5 +1,6 @@
-import type { MouseEvent } from 'react';
+import { useState, type MouseEvent } from 'react';
 import type { Product } from '../lib/api';
+import { ImagePlaceholder } from './ImagePlaceholder';
 
 export const formatMoney = (amountCents: number) =>
   new Intl.NumberFormat('en-IN', {
@@ -36,6 +37,9 @@ export function ProductCard({
   const isOutOfStock = product.stock <= 0;
   const isLowStock = product.stock > 0 && product.stock <= 5;
 
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
   const handleAdd = (e: MouseEvent) => {
     e.stopPropagation();
     if (!isOutOfStock) {
@@ -63,17 +67,25 @@ export function ProductCard({
       aria-label={`View details for ${product.title}`}
     >
       <div className="product-card-image-wrap">
-        {product.imageUrl ? (
-          <img
-            src={product.imageUrl}
-            alt={product.title}
-            className="product-card-image"
-            loading="lazy"
-          />
+        {product.imageUrl && !imageError ? (
+          <>
+            {!imageLoaded && (
+              <div className="product-card-image-skeleton" aria-hidden="true">
+                <ImagePlaceholder size="md" />
+              </div>
+            )}
+            <img
+              src={product.imageUrl}
+              alt={product.title}
+              className="product-card-image"
+              loading="lazy"
+              style={{ opacity: imageLoaded ? 1 : 0 }}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageError(true)}
+            />
+          </>
         ) : (
-          <div className="product-card-placeholder" aria-hidden="true">
-            <span>📦</span>
-          </div>
+          <ImagePlaceholder size="md" label={product.title} />
         )}
 
         {/* Stock Status Badge */}

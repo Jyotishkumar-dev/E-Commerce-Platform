@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useAdminProductCreate } from '../hooks/useAdmin';
 import { useAdminCategories } from '../hooks/useAdmin';
+import { ProductMediaManager } from './ProductMediaManager';
+import type { ProductImage } from '../lib/api';
 
 interface ProductCreatePageProps {
   onNavigate?: (page: string) => void;
@@ -21,6 +23,7 @@ export function ProductCreatePage({ onBack }: ProductCreatePageProps) {
     imageUrl: '',
   });
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
+  const [mediaImages, setMediaImages] = useState<ProductImage[]>([]);
 
   const validate = (): boolean => {
     const e: Partial<Record<string, string>> = {};
@@ -116,6 +119,15 @@ export function ProductCreatePage({ onBack }: ProductCreatePageProps) {
             Image URL
             <input type="url" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://..." />
           </label>
+
+          <div className="form-field full-width">
+            Product Images
+            <ProductMediaManager
+              images={mediaImages}
+              onImagesChange={setMediaImages}
+              maxImages={5}
+            />
+          </div>
         </div>
 
         <div className="modal-actions">

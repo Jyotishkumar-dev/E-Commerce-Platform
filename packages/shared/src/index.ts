@@ -60,6 +60,13 @@ export const productSchema = z.object({
 });
 export type Product = z.infer<typeof productSchema>;
 
+export const productMediaConfig = {
+  maxImages: 5,
+  maxFileSizeBytes: 5 * 1024 * 1024,
+  allowedFileTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+};
+export type ProductMediaConfig = typeof productMediaConfig;
+
 export const productQuerySchema = z.object({
   search: z.string().trim().optional(),
   category: z.string().optional(),

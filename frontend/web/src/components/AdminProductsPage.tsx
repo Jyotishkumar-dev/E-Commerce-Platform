@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAdminProducts, useAdminCategories } from '../hooks/useAdmin';
 import { formatMoney, getOrderStatusColor, formatOrderStatus } from '../hooks/useAdmin';
+import { ImagePlaceholder } from './ImagePlaceholder';
 
 interface AdminProductsPageProps {
   onNavigate?: (path: string) => void;
@@ -147,7 +148,7 @@ export function AdminProductsPage({ onNavigate }: AdminProductsPageProps) {
                       {product.imageUrl ? (
                         <img src={product.imageUrl} alt={product.title} className="product-thumb" />
                       ) : (
-                        <div className="product-thumb placeholder" aria-hidden="true">📦</div>
+                        <ImagePlaceholder size="sm" />
                       )}
                       <div>
                         <strong>{product.title}</strong>

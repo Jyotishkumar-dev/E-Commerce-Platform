@@ -1,5 +1,6 @@
 import { useEffect, useState, type MouseEvent } from 'react';
 import type { Product } from '../lib/api';
+import { ProductImageGallery } from './ProductImageGallery';
 import { formatMoney } from './ProductCard';
 
 export function ProductDetailModal({
@@ -63,17 +64,10 @@ export function ProductDetailModal({
         <div className="product-detail-grid">
           {/* Gallery / Image Area */}
           <div className="product-detail-gallery">
-            {product.imageUrl ? (
-              <img
-                src={product.imageUrl}
-                alt={product.title}
-                className="product-detail-main-image"
-              />
-            ) : (
-              <div className="product-detail-placeholder" aria-hidden="true">
-                <span>📦</span>
-              </div>
-            )}
+            <ProductImageGallery
+              images={product.imageUrl ? [{ id: 'main', url: product.imageUrl, altText: product.title, sortOrder: 0, isPrimary: true }] : []}
+              fallbackUrl={product.imageUrl}
+            />
           </div>
 
           {/* Product Info Area */}
