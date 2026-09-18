@@ -336,17 +336,7 @@ export function App() {
       )}
       {page === 'admin-products-edit' && editingProductId && (
         <ProductEditPage
-          product={{
-            id: editingProductId,
-            title: '',
-            description: null,
-            priceCents: 0,
-            currency: 'INR',
-            category: '',
-            imageUrl: null,
-            images: [],
-            stock: 0,
-          } as Product}
+          productId={editingProductId}
           onBack={() => {
             setEditingProductId(null);
             setPage('admin-products');

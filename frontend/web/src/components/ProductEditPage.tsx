@@ -141,7 +141,7 @@ export function ProductEditPage({ productId, onBack }: ProductEditPageProps) {
 
   const getPrimaryUrl = () => {
     const primary = mediaImages.find((i) => i.isPrimary);
-    return primary?.url ?? product?.imageUrl;
+    return primary?.url ?? product?.imageUrl ?? undefined;
   };
 
   if (isLoadingProduct) {

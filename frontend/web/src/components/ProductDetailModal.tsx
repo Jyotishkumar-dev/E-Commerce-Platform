@@ -21,6 +21,18 @@ export function ProductDetailModal({
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
 
+  const galleryImages = product
+    ? (product.images ?? []).length > 0
+      ? product.images.map((img) => ({
+          id: img.id,
+          url: img.url,
+          altText: img.altText ?? product.title,
+        }))
+      : product.imageUrl
+        ? [{ id: 'main', url: product.imageUrl, altText: product.title }]
+        : []
+    : [];
+
   useEffect(() => {
     setQuantity(1);
   }, [product?.id]);
@@ -40,16 +52,6 @@ export function ProductDetailModal({
   }, [onClose, viewerOpen, galleryImages.length]);
 
   if (!product) return null;
-
-  const galleryImages = (product.images ?? []).length > 0
-    ? product.images.map((img) => ({
-        id: img.id,
-        url: img.url,
-        altText: img.altText ?? product.title,
-      }))
-    : product.imageUrl
-      ? [{ id: 'main', url: product.imageUrl, altText: product.title }]
-      : [];
 
   const isOutOfStock = product.stock <= 0;
   const maxQty = Math.min(product.stock, 10);
