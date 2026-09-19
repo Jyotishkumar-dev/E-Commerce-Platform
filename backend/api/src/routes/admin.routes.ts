@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { AdminController } from '../controllers/admin.controller.js';
 import { allowRoles, authenticate } from '../middlewares/auth.js';
-import { validateQuery, validateBody } from '../middlewares/validate.js';
+import { validateQuery, validateBody, validateParams } from '../middlewares/validate.js';
 import {
   adminOrderFiltersSchema,
   updateOrderStatusSchema,
@@ -11,10 +11,19 @@ import {
   createCouponSchema,
   updateCouponSchema,
   toggleCouponActiveSchema,
+  analyticsQuerySchema,
+  couponValidateSchema,
 } from '../validators/admin.validator.js';
 import { createProductSchema, updateProductSchema, updateStockSchema } from '../validators/product.validator.js';
-import { analyticsQuerySchema } from '../validators/admin.validator.js';
-import { couponValidateSchema } from '../validators/admin.validator.js';
+import {
+  productIdParamSchema,
+  imageIdParamSchema,
+  uploadImageSchema,
+  setPrimaryImageSchema,
+  reorderImagesSchema,
+  updateImageSchema,
+} from '../validators/media.validator.js';
+import { uploadMultipleImages } from '../middlewares/upload.js';
 
 const router = Router();
 
@@ -58,3 +67,12 @@ router.patch('/coupons/:couponId', validateBody(updateCouponSchema), AdminContro
 router.patch('/coupons/:couponId/active', validateBody(toggleCouponActiveSchema), AdminController.toggleCouponActive);
 
 export { router as adminRouter };
+
+// Product Media Routes
+router.get('/products/:productId/images', validateParams(productIdParamSchema), AdminController.getProductImages);
+router.post('/products/:productId/images', uploadMultipleImages, validateParams(productIdParamSchema), validateBody(uploadImageSchema), AdminController.uploadProductImage);
+router.patch('/products/:productId/images/:imageId/primary', validateParams(imageIdParamSchema), validateBody(setPrimaryImageSchema), AdminController.setPrimaryImage);
+router.patch('/products/:productId/images/reorder', validateParams(productIdParamSchema), validateBody(reorderImagesSchema), AdminController.reorderImages);
+router.patch('/products/:productId/images/:imageId', validateParams(imageIdParamSchema), validateBody(updateImageSchema), AdminController.updateImage);
+router.delete('/products/:productId/images/:imageId', validateParams(imageIdParamSchema), AdminController.deleteImage);
+router.patch('/products/:productId/images/:imageId/replace', uploadMultipleImages, validateParams(imageIdParamSchema), AdminController.replaceImage);

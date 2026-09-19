@@ -1,6 +1,7 @@
 import type { OrderStatus, PaymentStatus, PaymentProvider } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
 import { NotFoundError, BadRequestError, ConflictError } from '../utils/errors.js';
+import { uploadImage, deleteImage, deleteImagesByPrefix } from './cloudinary.service.js';
 
 export interface AdminDashboardMetrics {
   users: number;
@@ -69,6 +70,7 @@ export interface AdminCouponFilters {
 }
 
 const LOW_STOCK_THRESHOLD = 10;
+const MAX_IMAGES_PER_PRODUCT = 5;
 
 export class AdminService {
   static async getDashboardMetrics(): Promise<AdminDashboardMetrics> {
@@ -782,5 +784,270 @@ export class AdminService {
       lowStock: p.stock > 0 && p.stock <= LOW_STOCK_THRESHOLD,
       outOfStock: p.stock <= 0,
     }));
+  }
+
+  // ==========================================
+  // Product Media Management
+  // ==========================================
+
+  static async getProductImages(productId: string) {
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true },
+    });
+
+    if (!product) {
+      throw new NotFoundError('Product not found.');
+    }
+
+    const images = await prisma.productImage.findMany({
+      where: { productId },
+      orderBy: { sortOrder: 'asc' },
+    });
+
+    return images;
+  }
+
+  static async uploadProductImage(
+    productId: string,
+    fileBuffer: Buffer,
+    options?: { altText?: string; isPrimary?: boolean }
+  ) {
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true, images: { select: { id: true } } },
+    });
+
+    if (!product) {
+      throw new NotFoundError('Product not found.');
+    }
+
+    if (product.images.length >= MAX_IMAGES_PER_PRODUCT) {
+      throw new BadRequestError(`Maximum ${MAX_IMAGES_PER_PRODUCT} images allowed per product.`);
+    }
+
+    // Upload to Cloudinary
+    const cloudinaryResult = await uploadImage(fileBuffer, productId);
+
+    // Determine sort order (append to end)
+    const maxSortOrder = await prisma.productImage.aggregate({
+      where: { productId },
+      _max: { sortOrder: true },
+    });
+
+    const sortOrder = (maxSortOrder._max.sortOrder ?? -1) + 1;
+
+    // If this is set as primary, unset any existing primary
+    if (options?.isPrimary) {
+      await prisma.productImage.updateMany({
+        where: { productId, isPrimary: true },
+        data: { isPrimary: false },
+      });
+    }
+
+    // Create database record
+    const image = await prisma.productImage.create({
+      data: {
+        productId,
+        url: cloudinaryResult.url,
+        publicId: cloudinaryResult.publicId,
+        altText: options?.altText ?? null,
+        sortOrder,
+        isPrimary: options?.isPrimary ?? false,
+      },
+    });
+
+    return image;
+  }
+
+  static async setPrimaryImage(productId: string, imageId: string) {
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true },
+    });
+
+    if (!product) {
+      throw new NotFoundError('Product not found.');
+    }
+
+    const image = await prisma.productImage.findFirst({
+      where: { id: imageId, productId },
+    });
+
+    if (!image) {
+      throw new NotFoundError('Image not found for this product.');
+    }
+
+    // Use transaction to ensure atomicity
+    return prisma.$transaction(async (tx) => {
+      // Unset all primary images for this product
+      await tx.productImage.updateMany({
+        where: { productId, isPrimary: true },
+        data: { isPrimary: false },
+      });
+
+      // Set the new primary
+      const updated = await tx.productImage.update({
+        where: { id: imageId },
+        data: { isPrimary: true },
+      });
+
+      return updated;
+    });
+  }
+
+  static async reorderImages(productId: string, imageIds: string[]) {
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { id: true },
+    });
+
+    if (!product) {
+      throw new NotFoundError('Product not found.');
+    }
+
+    // Verify all images belong to this product
+    const images = await prisma.productImage.findMany({
+      where: { id: { in: imageIds }, productId },
+      select: { id: true },
+    });
+
+    if (images.length !== imageIds.length) {
+      throw new BadRequestError('One or more images do not belong to this product.');
+    }
+
+    // Check for duplicates
+    const uniqueIds = new Set(imageIds);
+    if (uniqueIds.size !== imageIds.length) {
+      throw new BadRequestError('Duplicate image IDs are not allowed.');
+    }
+
+    // Update sort orders in a transaction
+    return prisma.$transaction(async (tx) => {
+      for (let i = 0; i < imageIds.length; i++) {
+        await tx.productImage.update({
+          where: { id: imageIds[i] },
+          data: { sortOrder: i },
+        });
+      }
+      return tx.productImage.findMany({
+        where: { productId },
+        orderBy: { sortOrder: 'asc' },
+      });
+    });
+  }
+
+  static async updateImage(productId: string, imageId: string, input: { altText?: string; sortOrder?: number }) {
+    const image = await prisma.productImage.findFirst({
+      where: { id: imageId, productId },
+    });
+
+    if (!image) {
+      throw new NotFoundError('Image not found for this product.');
+    }
+
+    // If updating sortOrder, check for conflicts
+    if (input.sortOrder !== undefined) {
+      const existing = await prisma.productImage.findFirst({
+        where: { productId, sortOrder: input.sortOrder, NOT: { id: imageId } },
+      });
+      if (existing) {
+        throw new BadRequestError('An image with this sort order already exists.');
+      }
+    }
+
+    return prisma.productImage.update({
+      where: { id: imageId },
+      data: {
+        altText: input.altText ?? image.altText,
+        sortOrder: input.sortOrder ?? image.sortOrder,
+      },
+    });
+  }
+
+  static async deleteImage(productId: string, imageId: string) {
+    const image = await prisma.productImage.findFirst({
+      where: { id: imageId, productId },
+    });
+
+    if (!image) {
+      throw new NotFoundError('Image not found for this product.');
+    }
+
+    const wasPrimary = image.isPrimary;
+
+    // Delete from Cloudinary first
+    try {
+      await deleteImage(image.publicId);
+    } catch (cloudinaryError) {
+      // Log but continue with database deletion
+      console.error('Cloudinary delete failed:', cloudinaryError);
+    }
+
+    // Delete from database
+    await prisma.productImage.delete({ where: { id: imageId } });
+
+    // If deleted image was primary, promote the next image
+    if (wasPrimary) {
+      const nextImage = await prisma.productImage.findFirst({
+        where: { productId },
+        orderBy: { sortOrder: 'asc' },
+      });
+      if (nextImage) {
+        await prisma.productImage.update({
+          where: { id: nextImage.id },
+          data: { isPrimary: true },
+        });
+      }
+    }
+
+    return { success: true };
+  }
+
+  static async deleteProductImages(productId: string) {
+    const images = await prisma.productImage.findMany({
+      where: { productId },
+      select: { publicId: true },
+    });
+
+    // Delete from Cloudinary
+    for (const image of images) {
+      try {
+        await deleteImage(image.publicId);
+      } catch (error) {
+        console.error(`Failed to delete Cloudinary image ${image.publicId}:`, error);
+      }
+    }
+
+    // Database records will be cascade deleted via Prisma relation
+  }
+
+  static async replaceImage(productId: string, imageId: string, fileBuffer: Buffer) {
+    const existingImage = await prisma.productImage.findFirst({
+      where: { id: imageId, productId },
+    });
+
+    if (!existingImage) {
+      throw new NotFoundError('Image not found for this product.');
+    }
+
+    // Upload new image to Cloudinary
+    const cloudinaryResult = await uploadImage(fileBuffer, productId);
+
+    // Delete old Cloudinary image
+    try {
+      await deleteImage(existingImage.publicId);
+    } catch (error) {
+      console.error('Failed to delete old Cloudinary image:', error);
+    }
+
+    // Update database record
+    return prisma.productImage.update({
+      where: { id: imageId },
+      data: {
+        url: cloudinaryResult.url,
+        publicId: cloudinaryResult.publicId,
+      },
+    });
   }
 }

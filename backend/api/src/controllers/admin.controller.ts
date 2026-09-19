@@ -3,6 +3,7 @@ import { AdminService } from '../services/admin.service.js';
 import { getParam } from '../utils/params.js';
 import { ok, created } from '../utils/response.js';
 import { ForbiddenError } from '../utils/errors.js';
+import { uploadMultipleImages } from '../middlewares/upload.js';
 
 export class AdminController {
   static requireAdmin(req: Request) {
@@ -241,6 +242,114 @@ export class AdminController {
       this.requireAdmin(req);
       const inventory = await AdminService.getInventory();
       return ok(res, req, { inventory }, 'Inventory fetched successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ==========================================
+  // Product Media Management
+  // ==========================================
+
+  static async getProductImages(req: Request, res: Response, next: NextFunction) {
+    try {
+      this.requireAdmin(req);
+      const productId = getParam(req, 'productId');
+      const images = await AdminService.getProductImages(productId);
+      return ok(res, req, { images }, 'Product images fetched successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async uploadProductImage(req: Request, res: Response, next: NextFunction) {
+    try {
+      this.requireAdmin(req);
+      const productId = getParam(req, 'productId');
+      const files = req.files as Express.Multer.File[];
+
+      if (!files || files.length === 0) {
+        return res.status(400).json({ success: false, message: 'No image files provided.' });
+      }
+
+      const { altText, isPrimary } = req.body;
+
+      const uploadedImages = [];
+      for (const file of files) {
+        const image = await AdminService.uploadProductImage(productId, file.buffer, {
+          altText,
+          isPrimary: files.length === 1 && isPrimary !== 'false',
+        });
+        uploadedImages.push(image);
+      }
+
+      return created(res, req, { images: uploadedImages }, 'Image(s) uploaded successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async setPrimaryImage(req: Request, res: Response, next: NextFunction) {
+    try {
+      this.requireAdmin(req);
+      const productId = getParam(req, 'productId');
+      const { imageId } = req.body;
+      const image = await AdminService.setPrimaryImage(productId, imageId);
+      return ok(res, req, { image }, 'Primary image set successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async reorderImages(req: Request, res: Response, next: NextFunction) {
+    try {
+      this.requireAdmin(req);
+      const productId = getParam(req, 'productId');
+      const { imageIds } = req.body;
+      const images = await AdminService.reorderImages(productId, imageIds);
+      return ok(res, req, { images }, 'Images reordered successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async updateImage(req: Request, res: Response, next: NextFunction) {
+    try {
+      this.requireAdmin(req);
+      const productId = getParam(req, 'productId');
+      const imageId = getParam(req, 'imageId');
+      const image = await AdminService.updateImage(productId, imageId, req.body);
+      return ok(res, req, { image }, 'Image updated successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteImage(req: Request, res: Response, next: NextFunction) {
+    try {
+      this.requireAdmin(req);
+      const productId = getParam(req, 'productId');
+      const imageId = getParam(req, 'imageId');
+      await AdminService.deleteImage(productId, imageId);
+      return ok(res, req, null, 'Image deleted successfully');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async replaceImage(req: Request, res: Response, next: NextFunction) {
+    try {
+      this.requireAdmin(req);
+      const productId = getParam(req, 'productId');
+      const imageId = getParam(req, 'imageId');
+      const file = req.file as Express.Multer.File;
+
+      if (!file) {
+        return res.status(400).json({ success: false, message: 'No image file provided.' });
+      }
+
+      const image = await AdminService.replaceImage(productId, imageId, file.buffer);
+      return ok(res, req, { image }, 'Image replaced successfully');
     } catch (error) {
       next(error);
     }
