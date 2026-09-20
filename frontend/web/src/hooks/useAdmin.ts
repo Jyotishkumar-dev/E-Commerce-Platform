@@ -602,3 +602,144 @@ export function useCouponValidate() {
 
   return { validateCoupon: mutation.mutateAsync, isValidating: mutation.isPending };
 }
+
+export interface ProductImage {
+  id: string;
+  url: string;
+  altText: string | null;
+  sortOrder: number;
+  isPrimary: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export function useAdminProductImages(productId: string | null) {
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<ProductImage[]>({
+    queryKey: ['admin', 'products', productId, 'images'],
+    queryFn: async () => {
+      if (!productId) throw new Error('Product ID required');
+      const response = await api.get(`/admin/products/${productId}/images`);
+      return response.data?.data?.images ?? [];
+    },
+    enabled: Boolean(productId),
+    staleTime: 30 * 1000,
+  });
+
+  return { images: data ?? [], isLoading, isError, error: error ? messageOf(error) : null, refetch };
+}
+
+export function useAdminUploadProductImage(productId: string | null) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (files: File[]) => {
+      if (!productId) throw new Error('Product ID required');
+      const formData = new FormData();
+      files.forEach((file) => formData.append('images', file));
+      const response = await api.post(`/admin/products/${productId}/images`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data?.data?.images ?? [];
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'products', productId, 'images'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'products'] });
+    },
+  });
+
+  return { uploadImages: mutation.mutateAsync, isUploading: mutation.isPending };
+}
+
+export function useAdminSetPrimaryImage(productId: string | null) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (imageId: string) => {
+      if (!productId) throw new Error('Product ID required');
+      const response = await api.patch(`/admin/products/${productId}/images/${imageId}/primary`, { imageId });
+      return response.data?.data?.image;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'products', productId, 'images'] });
+    },
+  });
+
+  return { setPrimaryImage: mutation.mutateAsync, isSettingPrimary: mutation.isPending };
+}
+
+export function useAdminReorderImages(productId: string | null) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (imageIds: string[]) => {
+      if (!productId) throw new Error('Product ID required');
+      const response = await api.patch(`/admin/products/${productId}/images/reorder`, { imageIds });
+      return response.data?.data?.images ?? [];
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'products', productId, 'images'] });
+    },
+  });
+
+  return { reorderImages: mutation.mutateAsync, isReordering: mutation.isPending };
+}
+
+export function useAdminUpdateImage(productId: string | null) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({ imageId, input }: { imageId: string; input: { altText?: string; sortOrder?: number } }) => {
+      if (!productId) throw new Error('Product ID required');
+      const response = await api.patch(`/admin/products/${productId}/images/${imageId}`, input);
+      return response.data?.data?.image;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'products', productId, 'images'] });
+    },
+  });
+
+  return { updateImage: mutation.mutateAsync, isUpdating: mutation.isPending };
+}
+
+export function useAdminDeleteImage(productId: string | null) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (imageId: string) => {
+      if (!productId) throw new Error('Product ID required');
+      await api.delete(`/admin/products/${productId}/images/${imageId}`);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'products', productId, 'images'] });
+    },
+  });
+
+  return { deleteImage: mutation.mutateAsync, isDeleting: mutation.isPending };
+}
+
+export function useAdminReplaceImage(productId: string | null) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({ imageId, file }: { imageId: string; file: File }) => {
+      if (!productId) throw new Error('Product ID required');
+      const formData = new FormData();
+      formData.append('images', file);
+      const response = await api.patch(`/admin/products/${productId}/images/${imageId}/replace`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data?.data?.image;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'products', productId, 'images'] });
+    },
+  });
+
+  return { replaceImage: mutation.mutateAsync, isReplacing: mutation.isPending };
+}
