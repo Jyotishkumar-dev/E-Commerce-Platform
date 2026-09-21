@@ -743,3 +743,74 @@ export function useAdminReplaceImage(productId: string | null) {
 
   return { replaceImage: mutation.mutateAsync, isReplacing: mutation.isPending };
 }
+
+export interface AdminReview {
+  id: string;
+  productId: string;
+  userId: string;
+  rating: number;
+  title: string | null;
+  body: string;
+  isVerifiedPurchase: boolean;
+  status: 'PUBLISHED' | 'PENDING' | 'HIDDEN';
+  createdAt: string;
+  updatedAt: string;
+  user: { id: string; name: string | null; email: string };
+  product: { id: string; title: string; slug: string };
+}
+
+export function useAdminReviews(filters?: {
+  search?: string;
+  rating?: number;
+  status?: 'PUBLISHED' | 'PENDING' | 'HIDDEN';
+  productId?: string;
+  userId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+  limit?: number;
+}) {
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<{ reviews: AdminReview[]; pagination: any }>({
+    queryKey: ['admin', 'reviews', filters],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (filters?.search) params.set('search', filters.search);
+      if (filters?.rating) params.set('rating', String(filters.rating));
+      if (filters?.status) params.set('status', filters.status);
+      if (filters?.productId) params.set('productId', filters.productId);
+      if (filters?.userId) params.set('userId', filters.userId);
+      if (filters?.dateFrom) params.set('dateFrom', filters.dateFrom);
+      if (filters?.dateTo) params.set('dateTo', filters.dateTo);
+      if (filters?.page) params.set('page', String(filters.page));
+      if (filters?.limit) params.set('limit', String(filters.limit));
+
+      const response = await api.get(`/admin/reviews?${params.toString()}`);
+      return response.data?.data;
+    },
+    staleTime: 30 * 1000,
+  });
+
+  return { reviews: data?.reviews ?? [], pagination: data?.pagination, isLoading, isError, error: error ? messageOf(error) : null, refetch };
+}
+
+export function useAdminModerateReview() {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async ({ reviewId, status }: { reviewId: string; status: 'PUBLISHED' | 'PENDING' | 'HIDDEN' }) => {
+      const response = await api.patch(`/admin/reviews/${reviewId}/moderate`, { status });
+      return response.data?.data?.review;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'reviews'] });
+    },
+  });
+
+  return { moderateReview: mutation.mutateAsync, isModerating: mutation.isPending };
+}
