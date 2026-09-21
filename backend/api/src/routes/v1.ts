@@ -8,6 +8,7 @@ import { addressRouter } from './address.routes.js';
 import { orderRouter } from './order.routes.js';
 import { adminRouter } from './admin.routes.js';
 import { paymentRouter } from './payment.routes.js';
+import { reviewRouter } from './review.routes.js';
 import { prisma } from '../lib/prisma.js';
 import { defaultProductSelect } from '../services/product.service.js';
 import { ok } from '../utils/response.js';
@@ -23,6 +24,7 @@ router.use('/addresses', addressRouter);
 router.use('/orders', orderRouter);
 router.use('/payments', paymentRouter);
 router.use('/admin', adminRouter);
+router.use('/reviews', reviewRouter);
 
 // Catalog curation / recommendation endpoint
 router.post('/ai/recommendations', async (req, res, next) => {

@@ -26,6 +26,11 @@ export type Product = {
   stock: number;
   isActive?: boolean;
   seller?: { name: string | null };
+  reviewSummary?: {
+    averageRating: number;
+    totalReviews: number;
+    ratingDistribution: Record<1 | 2 | 3 | 4 | 5, number>;
+  };
 };
 
 export type ProductImage = {
@@ -34,6 +39,21 @@ export type ProductImage = {
   altText: string;
   sortOrder: number;
   isPrimary: boolean;
+};
+
+export type ProductReview = {
+  id: string;
+  productId: string;
+  userId: string;
+  orderId?: string | null;
+  rating: 1 | 2 | 3 | 4 | 5;
+  title: string | null;
+  body: string;
+  isVerifiedPurchase: boolean;
+  status: 'PUBLISHED' | 'PENDING' | 'HIDDEN';
+  createdAt: string;
+  updatedAt: string;
+  user: { id: string; name: string | null };
 };
 
 export type CartItem = {
