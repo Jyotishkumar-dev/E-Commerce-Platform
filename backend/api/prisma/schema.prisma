@@ -233,6 +233,12 @@ enum CouponType {
   FIXED
 }
 
+enum ReviewStatus {
+  PUBLISHED
+  PENDING
+  HIDDEN
+}
+
 model Coupon {
   id                     String     @id @default(cuid())
   code                   String     @unique
@@ -248,6 +254,27 @@ model Coupon {
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt
   orders                 Order[]
+}
+
+model ProductReview {
+  id                  String         @id @default(cuid())
+  productId           String
+  userId              String
+  orderId             String?
+  rating              Int
+  title               String?
+  body                String
+  isVerifiedPurchase  Boolean        @default(false)
+  status              ReviewStatus   @default(PUBLISHED)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  product             Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order               Order?         @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@unique([productId, userId])
+  @@index([productId, status])
+  @@index([userId])
 }
 
 model PasswordResetToken {
