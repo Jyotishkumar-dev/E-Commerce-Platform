@@ -4250,6 +4250,248 @@ footer small {
 }
 
 /* ==========================================================================
+   Product Reviews
+   ========================================================================== */
+
+.product-detail-reviews-section {
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 40px;
+  margin-top: 40px;
+}
+
+.reviews-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 32px 0 16px;
+}
+
+.reviews-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.review-summary {
+  padding: 24px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.review-summary-header {
+  display: flex;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.review-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.average-rating {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.review-score .stars {
+  display: flex;
+  gap: 2px;
+  font-size: 18px;
+  color: var(--text-tertiary);
+}
+
+.review-score .stars .filled {
+  color: #f59e0b;
+}
+
+.review-count {
+  font-size: 14px;
+  color: var(--text-tertiary);
+}
+
+.rating-bars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+}
+
+.rating-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.rating-label {
+  width: 24px;
+  text-align: right;
+  color: var(--text-tertiary);
+}
+
+.rating-bar-container {
+  flex: 1;
+  height: 8px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.rating-bar-fill {
+  height: 100%;
+  background: #f59e0b;
+  border-radius: var(--radius-full);
+  transition: width var(--transition-normal);
+}
+
+.rating-count {
+  width: 24px;
+  text-align: left;
+  color: var(--text-tertiary);
+}
+
+.review-card {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.reviewer-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.review-date {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.review-rating {
+  color: #f59e0b;
+  font-size: 14px;
+}
+
+.review-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 8px 0;
+}
+
+.review-body {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.verified-purchase-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--status-success);
+  background: var(--status-success-bg);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  margin-top: 8px;
+}
+
+.review-actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.review-actions .danger {
+  color: var(--status-danger);
+}
+
+.review-form {
+  padding: 20px;
+  background: var(--bg-muted);
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+}
+
+.review-form h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+}
+
+.star-rating-input {
+  display: flex;
+  gap: 4px;
+  font-size: 24px;
+  color: var(--text-tertiary);
+}
+
+.star-rating-input .star-input.filled {
+  color: #f59e0b;
+}
+
+.review-form .form-group {
+  margin-bottom: 16px;
+}
+
+.review-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.review-form textarea:focus {
+  border-color: var(--brand-primary);
+  outline: none;
+}
+
+.textarea-hint {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  text-align: right;
+  margin-top: 4px;
+}
+
+.reviews-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--text-tertiary);
+}
+
+.review-empty-state,
+.review-summary-empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-tertiary);
+}
+
+@media (max-width: 768px) {
+  .review-summary-header {
+    flex-direction: column;
+    align-items: center;
+  }
+  .rating-bars {
+    width: 100%;
+  }
+}
+
+/* ==========================================================================
    FullScreenImageViewer (Lightbox)
    ========================================================================== */
 

@@ -3,6 +3,9 @@ import type { Product } from '../lib/api';
 import { ProductImageGallery } from './ProductImageGallery';
 import { FullScreenImageViewer } from './FullScreenImageViewer';
 import { formatMoney } from './ProductCard';
+import { ReviewSummary, ReviewList, ReviewForm } from './ReviewComponents';
+import { useReviewSummary, useProductReviews, useUserReview } from '../hooks/useReviews';
+import { useAuth } from '../context/AuthContext';
 
 export function ProductDetailModal({
   product,
@@ -17,24 +20,24 @@ export function ProductDetailModal({
   onToggleWishlist?: (productId: string) => void;
   isWishlisted?: boolean;
 }) {
+  const { user } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
+  const [reviewsPage, setReviewsPage] = useState(1);
+  const [showReviewForm, setShowReviewForm] = useState(false);
 
-  const galleryImages = product
-    ? (product.images ?? []).length > 0
-      ? product.images.map((img) => ({
-          id: img.id,
-          url: img.url,
-          altText: img.altText ?? product.title,
-        }))
-      : product.imageUrl
-        ? [{ id: 'main', url: product.imageUrl, altText: product.title }]
-        : []
-    : [];
+  const { summary } = useReviewSummary(product?.id ?? null);
+  const { reviews, pagination, refetch: refetchReviews } = useProductReviews(product?.id ?? null, { sort: 'newest', page: reviewsPage, limit: 5 });
+  const { review: userReview } = useUserReview(product?.id ?? null);
 
   useEffect(() => {
     setQuantity(1);
+  }, [product?.id]);
+
+  useEffect(() => {
+    setReviewsPage(1);
+    setShowReviewForm(false);
   }, [product?.id]);
 
   useEffect(() => {
@@ -52,6 +55,18 @@ export function ProductDetailModal({
   }, [onClose, viewerOpen, galleryImages.length]);
 
   if (!product) return null;
+
+  const galleryImages = product
+    ? (product.images ?? []).length > 0
+      ? product.images.map((img) => ({
+          id: img.id,
+          url: img.url,
+          altText: img.altText ?? product.title,
+        }))
+      : product.imageUrl
+        ? [{ id: 'main', url: product.imageUrl, altText: product.title }]
+        : []
+    : [];
 
   const isOutOfStock = product.stock <= 0;
   const maxQty = Math.min(product.stock, 10);
@@ -290,6 +305,65 @@ export function ProductDetailModal({
           </div>
         </div>
       </div>
+
+      {/* Reviews Section (below modal) */}
+      {product.id && (
+        <div className="product-detail-reviews-section">
+          <ReviewSummary summary={summary} productTitle={product.title} />
+
+          <div className="reviews-header">
+            <h3>Customer Reviews</h3>
+            {user && (
+              <button
+                type="button"
+                className="primary"
+                onClick={() => setShowReviewForm(!showReviewForm)}
+              >
+                {showReviewForm ? 'Cancel' : userReview ? 'Edit Your Review' : 'Write a Review'}
+              </button>
+            )}
+          </div>
+
+          {showReviewForm && (
+            <ReviewForm
+              productId={product.id}
+              initialReview={userReview ? { id: userReview.id, rating: userReview.rating, title: userReview.title, body: userReview.body } : null}
+              onSuccess={() => {
+                setShowReviewForm(false);
+                refetchReviews();
+              }}
+              onCancel={() => setShowReviewForm(false)}
+            />
+          )}
+
+          <ReviewList
+            reviews={reviews}
+            currentUserId={user?.id ?? null}
+          />
+
+          {pagination && pagination.totalPages > 1 && (
+            <div className="reviews-pagination">
+              <button
+                type="button"
+                className="plain"
+                onClick={() => setReviewsPage((p) => Math.max(1, p - 1))}
+                disabled={reviewsPage === 1}
+              >
+                ← Previous
+              </button>
+              <span>Page {reviewsPage} of {pagination.totalPages}</span>
+              <button
+                type="button"
+                className="plain"
+                onClick={() => setReviewsPage((p) => Math.min(pagination.totalPages, p + 1))}
+                disabled={reviewsPage === pagination.totalPages}
+              >
+                Next →
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {viewerOpen && (
         <FullScreenImageViewer
