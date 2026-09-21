@@ -8,7 +8,7 @@ describe('Order Validators', () => {
   describe('createOrderSchema', () => {
     it('accepts valid order', () => {
       const result = createOrderSchema.safeParse({
-        shippingAddressId: 'addr_1',
+        shippingAddressId: 'cdu_abc123def456',
       });
       expect(result.success).toBe(true);
     });

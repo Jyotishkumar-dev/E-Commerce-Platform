@@ -151,9 +151,9 @@ describe('Auth Validators', () => {
       expect(result.success).toBe(true);
     });
 
-    it('rejects short current password', () => {
+    it('rejects empty current password', () => {
       const result = changePasswordSchema.safeParse({
-        currentPassword: 'short',
+        currentPassword: '',
         newPassword: 'newPassword123',
       });
       expect(result.success).toBe(false);

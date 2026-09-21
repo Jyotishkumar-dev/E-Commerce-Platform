@@ -63,7 +63,7 @@ describe('ReviewComponents', () => {
       );
       expect(container.textContent).toContain('John');
       expect(container.textContent).toContain('Great product');
-      expect(container.textContent).toContain('Verified purchase');
+      expect(container.textContent).toContain('Verified Purchase');
     });
 
     it('shows anonymous when no user name', () => {

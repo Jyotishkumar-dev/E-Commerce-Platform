@@ -179,7 +179,7 @@ describe('Review Validators', () => {
   describe('productIdParamSchema', () => {
     it('accepts valid cuid', () => {
       const result = productIdParamSchema.safeParse({
-        productId: 'prod_1',
+        productId: 'cdu_abc123def456',
       });
       expect(result.success).toBe(true);
     });
@@ -195,7 +195,7 @@ describe('Review Validators', () => {
   describe('reviewIdParamSchema', () => {
     it('accepts valid cuid', () => {
       const result = reviewIdParamSchema.safeParse({
-        reviewId: 'rev_1',
+        reviewId: 'cdu_abc123def456',
       });
       expect(result.success).toBe(true);
     });

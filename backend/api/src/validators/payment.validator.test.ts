@@ -9,7 +9,7 @@ describe('Payment Validators', () => {
   describe('createPaymentOrderSchema', () => {
     it('accepts valid order ID', () => {
       const result = createPaymentOrderSchema.safeParse({
-        orderId: 'ord_1',
+        orderId: 'cdu_abc123def456',
       });
       expect(result.success).toBe(true);
     });
