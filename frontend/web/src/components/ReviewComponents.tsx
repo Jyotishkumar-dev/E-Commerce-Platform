@@ -1,4 +1,6 @@
 import { formatMoney } from '../components/ProductCard';
+import { useState } from 'react';
+import { useCreateReview, useUpdateReview, useDeleteReview } from '../hooks/useReviews';
 
 interface RatingBarProps {
   rating: 1 | 2 | 3 | 4 | 5;
@@ -35,7 +37,7 @@ export function ReviewSummary({ summary, productTitle }: ReviewSummaryProps) {
   if (!summary || summary.totalReviews === 0) {
     return (
       <div className="review-summary-empty">
-        <p>No reviews yet. Be the first to review{f}!</p>
+        <p>No reviews yet. Be the first to review!</p>
       </div>
     );
   }
@@ -62,15 +64,16 @@ export function ReviewSummary({ summary, productTitle }: ReviewSummaryProps) {
           {[5, 4, 3, 2, 1].map((rating) => (
             <RatingBar
               key={rating}
-              rating={rating}
-              percentage={summary.ratingDistribution[rating] / Math.max(...Object.values(summary.ratingDistribution), 1) * 100}
-              count={summary.ratingDistribution[rating]}
+              rating={rating as 1 | 2 | 3 | 4 | 5}
+              percentage={summary.ratingDistribution[rating as 1 | 2 | 3 | 4 | 5] / Math.max(...Object.values(summary.ratingDistribution), 1) * 100}
+              count={summary.ratingDistribution[rating as 1 | 2 | 3 | 4 | 5]}
               maxCount={Math.max(...Object.values(summary.ratingDistribution), 1)}
             />
           ))}
         </div>
       </div>
-    );
+    </div>
+  );
 }
 
 interface ReviewCardProps {
@@ -301,6 +304,3 @@ export function ReviewForm({ productId, onSuccess, onCancel, initialReview }: Re
     </form>
   );
 }
-
-import { useState } from 'react';
-import { useCreateReview, useUpdateReview, useDeleteReview } from '../hooks/useReviews';
