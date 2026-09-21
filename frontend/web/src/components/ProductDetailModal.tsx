@@ -40,20 +40,6 @@ export function ProductDetailModal({
     setShowReviewForm(false);
   }, [product?.id]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (viewerOpen) setViewerOpen(false);
-        else onClose();
-      }
-      if (e.key === 'ArrowLeft') setViewerIndex((i) => Math.max(0, i - 1));
-      if (e.key === 'ArrowRight')
-        setViewerIndex((i) => Math.min(galleryImages.length - 1, i + 1));
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose, viewerOpen, galleryImages.length]);
-
   if (!product) return null;
 
   const galleryImages = product
@@ -67,6 +53,20 @@ export function ProductDetailModal({
         ? [{ id: 'main', url: product.imageUrl, altText: product.title }]
         : []
     : [];
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (viewerOpen) setViewerOpen(false);
+        else onClose();
+      }
+      if (e.key === 'ArrowLeft') setViewerIndex((i) => Math.max(0, i - 1));
+      if (e.key === 'ArrowRight')
+        setViewerIndex((i) => Math.min(galleryImages.length - 1, i + 1));
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose, viewerOpen, galleryImages.length]);
 
   const isOutOfStock = product.stock <= 0;
   const maxQty = Math.min(product.stock, 10);
@@ -309,7 +309,7 @@ export function ProductDetailModal({
       {/* Reviews Section (below modal) */}
       {product.id && (
         <div className="product-detail-reviews-section">
-          <ReviewSummary summary={summary} productTitle={product.title} />
+          <ReviewSummary summary={summary ?? null} productTitle={product.title} />
 
           <div className="reviews-header">
             <h3>Customer Reviews</h3>
