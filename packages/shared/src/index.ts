@@ -209,6 +209,49 @@ export const orderSchema = z.object({
 export type Order = z.infer<typeof orderSchema>;
 
 
+export const ReviewStatusEnum = z.enum(['PUBLISHED', 'PENDING', 'HIDDEN']);
+export type ReviewStatus = z.infer<typeof ReviewStatusEnum>;
+
+export const productReviewSchema = z.object({
+  id: z.string(),
+  productId: z.string(),
+  userId: z.string(),
+  orderId: z.string().nullable().optional(),
+  rating: z.number().int().min(1).max(5),
+  title: z.string().nullable().optional(),
+  body: z.string(),
+  isVerifiedPurchase: z.boolean().default(false),
+  status: ReviewStatusEnum,
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type ProductReview = z.infer<typeof productReviewSchema>;
+
+export const productReviewQuerySchema = z.object({
+  productId: z.string().min(1),
+  status: ReviewStatusEnum.optional(),
+  sort: z.enum(['newest', 'highest_rated', 'lowest_rated']).optional(),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(50).default(10),
+});
+export type ProductReviewQuery = z.infer<typeof productReviewQuerySchema>;
+
+export const createProductReviewSchema = z.object({
+  productId: z.string().min(1),
+  rating: z.number().int().min(1).max(5),
+  title: z.string().trim().max(100).optional(),
+  body: z.string().trim().min(10).max(2000),
+  orderId: z.string().optional(),
+});
+export type CreateProductReviewRequest = z.infer<typeof createProductReviewSchema>;
+
+export const updateProductReviewSchema = z.object({
+  rating: z.number().int().min(1).max(5).optional(),
+  title: z.string().trim().max(100).optional(),
+  body: z.string().trim().min(10).max(2000).optional(),
+});
+export type UpdateProductReviewRequest = z.infer<typeof updateProductReviewSchema>;
+
 // ==========================================
 // Common API & Health Schemas & Types
 // ==========================================

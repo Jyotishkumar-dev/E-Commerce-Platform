@@ -31,6 +31,7 @@ model User {
   wishlist            WishlistItem[]
   addresses           Address[]
   passwordResetTokens PasswordResetToken[]
+  reviews             ProductReview[]
 }
 
 model Category {
@@ -71,6 +72,7 @@ model Product {
   cartItems           CartItem[]
   orderItems          OrderItem[]
   wishlistedBy        WishlistItem[]
+  reviews             ProductReview[]
 
   @@index([sellerId, isActive])
   @@index([slug])
@@ -195,6 +197,7 @@ model Order {
   items                   OrderItem[]
   payment                 Payment?
   coupon                  Coupon?     @relation(fields: [couponId], references: [id], onDelete: SetNull)
+  reviews                 ProductReview[]
 
   @@index([userId, createdAt])
   @@index([status])
