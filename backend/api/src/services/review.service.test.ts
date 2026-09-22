@@ -199,12 +199,12 @@ describe('ReviewService', () => {
     it('updates review successfully', async () => {
       vi.mocked(prisma.productReview.findUnique).mockResolvedValue({
         id: 'rev_1', productId: 'prod_1', userId: 'usr_1', rating: 5, title: 'Great', body: 'Excellent', status: 'PUBLISHED',
-        createdAt: '2024-01-01', updatedAt: '2024-01-01',
-      });
+        createdAt: new Date('2024-01-01'), updatedAt: new Date('2024-01-01'),
+      } as any);
       vi.mocked(prisma.productReview.update).mockResolvedValue({
         id: 'rev_1', productId: 'prod_1', userId: 'usr_1', rating: 4, title: 'Updated', body: 'Updated body', status: 'PUBLISHED',
-        createdAt: '2024-01-01', updatedAt: '2024-01-02', user: { id: 'usr_1', name: 'John' },
-      });
+        createdAt: new Date('2024-01-01'), updatedAt: new Date('2024-01-02'), user: { id: 'usr_1', name: 'John' },
+      } as any);
 
       const result = await ReviewService.updateReview('usr_1', 'rev_1', { rating: 4, title: 'Updated', body: 'Updated body' });
 
@@ -249,8 +249,8 @@ describe('ReviewService', () => {
     it('throws ForbiddenError for non-owner', async () => {
       vi.mocked(prisma.productReview.findUnique).mockResolvedValue({
         id: 'rev_1', productId: 'prod_1', userId: 'usr_2', rating: 5, title: 'Great', body: 'Excellent', status: 'PUBLISHED',
-        createdAt: '2024-01-01', updatedAt: '2024-01-01',
-      });
+        createdAt: new Date('2024-01-01'), updatedAt: new Date('2024-01-01'),
+      } as any);
 
       await expect(ReviewService.deleteReview('usr_1', 'rev_1')).rejects.toThrow(ForbiddenError);
     });
@@ -258,7 +258,7 @@ describe('ReviewService', () => {
 
   describe('getUserReviewForProduct', () => {
     it('returns existing review', async () => {
-      vi.mocked(prisma.productReview.findUnique).mockResolvedValue({ id: 'rev_1' });
+      vi.mocked(prisma.productReview.findUnique).mockResolvedValue({ id: 'rev_1' } as any);
 
       const result = await ReviewService.getUserReviewForProduct('usr_1', 'prod_1');
 
@@ -333,8 +333,8 @@ describe('ReviewService', () => {
 
   describe('moderateReview', () => {
     it('updates review status', async () => {
-      vi.mocked(prisma.productReview.findUnique).mockResolvedValue({ id: 'rev_1' });
-      vi.mocked(prisma.productReview.update).mockResolvedValue({ id: 'rev_1', status: 'HIDDEN' });
+      vi.mocked(prisma.productReview.findUnique).mockResolvedValue({ id: 'rev_1' } as any);
+      vi.mocked(prisma.productReview.update).mockResolvedValue({ id: 'rev_1', status: 'HIDDEN' } as any);
 
       const result = await ReviewService.moderateReview('rev_1', 'HIDDEN');
 
