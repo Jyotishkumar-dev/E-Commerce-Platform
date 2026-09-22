@@ -84,11 +84,11 @@ describe('ReviewService', () => {
   describe('getReviewSummary', () => {
     it('calculates average rating and distribution', async () => {
       vi.mocked(prisma.productReview.findMany).mockResolvedValue([
-        { rating: 5 },
-        { rating: 4 },
-        { rating: 5 },
-        { rating: 3 },
-        { rating: 5 },
+        { rating: 5 } as any,
+        { rating: 4 } as any,
+        { rating: 5 } as any,
+        { rating: 3 } as any,
+        { rating: 5 } as any,
       ]);
 
       const result = await ReviewService.getReviewSummary('prod_1');
@@ -111,13 +111,13 @@ describe('ReviewService', () => {
 
   describe('createReview', () => {
     it('creates a review successfully', async () => {
-      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: 'prod_1', isActive: true });
+      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: 'prod_1', isActive: true } as any);
       vi.mocked(prisma.productReview.findUnique).mockResolvedValue(null);
       vi.mocked(prisma.productReview.create).mockResolvedValue({
         id: 'rev_1', productId: 'prod_1', userId: 'usr_1', rating: 5,
         title: 'Great', body: 'Excellent', isVerifiedPurchase: false, status: 'PUBLISHED',
-        createdAt: '2024-01-01', updatedAt: '2024-01-01', user: { id: 'usr_1', name: 'John' },
-      });
+        createdAt: new Date('2024-01-01'), updatedAt: new Date('2024-01-01'), user: { id: 'usr_1', name: 'John' },
+      } as any);
 
       const result = await ReviewService.createReview('usr_1', {
         productId: 'prod_1', rating: 5, title: 'Great', body: 'Excellent',
@@ -128,7 +128,7 @@ describe('ReviewService', () => {
     });
 
     it('throws NotFoundError for inactive product', async () => {
-      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: 'prod_1', isActive: false });
+      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: 'prod_1', isActive: false } as any);
 
       await expect(ReviewService.createReview('usr_1', {
         productId: 'prod_1', rating: 5, body: 'Excellent',
@@ -136,8 +136,8 @@ describe('ReviewService', () => {
     });
 
     it('throws ConflictError for duplicate review', async () => {
-      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: 'prod_1', isActive: true });
-      vi.mocked(prisma.productReview.findUnique).mockResolvedValue({ id: 'rev_1' });
+      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: 'prod_1', isActive: true } as any);
+      vi.mocked(prisma.productReview.findUnique).mockResolvedValue({ id: 'rev_1' } as any);
 
       await expect(ReviewService.createReview('usr_1', {
         productId: 'prod_1', rating: 5, body: 'Excellent',
@@ -145,14 +145,14 @@ describe('ReviewService', () => {
     });
 
     it('verifies purchase from order item', async () => {
-      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: 'prod_1', isActive: true });
+      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: 'prod_1', isActive: true } as any);
       vi.mocked(prisma.productReview.findUnique).mockResolvedValue(null);
-      vi.mocked(prisma.orderItem.findFirst).mockResolvedValue({ id: 'oi_1' });
+      vi.mocked(prisma.orderItem.findFirst).mockResolvedValue({ id: 'oi_1' } as any);
       vi.mocked(prisma.productReview.create).mockResolvedValue({
         id: 'rev_1', productId: 'prod_1', userId: 'usr_1', rating: 5,
         title: 'Great', body: 'Excellent', isVerifiedPurchase: true, status: 'PUBLISHED',
-        createdAt: '2024-01-01', updatedAt: '2024-01-01', user: { id: 'usr_1', name: 'John' },
-      });
+        createdAt: new Date('2024-01-01'), updatedAt: new Date('2024-01-01'), user: { id: 'usr_1', name: 'John' },
+      } as any);
 
       const result = await ReviewService.createReview('usr_1', {
         productId: 'prod_1', rating: 5, title: 'Great', body: 'Excellent', orderId: 'ord_1',
@@ -162,14 +162,14 @@ describe('ReviewService', () => {
     });
 
     it('auto-detects verified purchase from delivered order', async () => {
-      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: 'prod_1', isActive: true });
+      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: 'prod_1', isActive: true } as any);
       vi.mocked(prisma.productReview.findUnique).mockResolvedValue(null);
-      vi.mocked(prisma.order.findFirst).mockResolvedValue({ id: 'ord_1' });
+      vi.mocked(prisma.order.findFirst).mockResolvedValue({ id: 'ord_1' } as any);
       vi.mocked(prisma.productReview.create).mockResolvedValue({
         id: 'rev_1', productId: 'prod_1', userId: 'usr_1', rating: 5,
         title: 'Great', body: 'Excellent', isVerifiedPurchase: true, status: 'PUBLISHED',
-        createdAt: '2024-01-01', updatedAt: '2024-01-01', user: { id: 'usr_1', name: 'John' },
-      });
+        createdAt: new Date('2024-01-01'), updatedAt: new Date('2024-01-01'), user: { id: 'usr_1', name: 'John' },
+      } as any);
 
       const result = await ReviewService.createReview('usr_1', {
         productId: 'prod_1', rating: 5, title: 'Great', body: 'Excellent',
@@ -179,13 +179,13 @@ describe('ReviewService', () => {
     });
 
     it('sets status to PUBLISHED', async () => {
-      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: 'prod_1', isActive: true });
+      vi.mocked(prisma.product.findUnique).mockResolvedValue({ id: 'prod_1', isActive: true } as any);
       vi.mocked(prisma.productReview.findUnique).mockResolvedValue(null);
       vi.mocked(prisma.productReview.create).mockResolvedValue({
         id: 'rev_1', productId: 'prod_1', userId: 'usr_1', rating: 5,
         title: 'Great', body: 'Excellent', isVerifiedPurchase: false, status: 'PUBLISHED',
-        createdAt: '2024-01-01', updatedAt: '2024-01-01', user: { id: 'usr_1', name: 'John' },
-      });
+        createdAt: new Date('2024-01-01'), updatedAt: new Date('2024-01-01'), user: { id: 'usr_1', name: 'John' },
+      } as any);
 
       const result = await ReviewService.createReview('usr_1', {
         productId: 'prod_1', rating: 5, body: 'Excellent',
@@ -221,8 +221,8 @@ describe('ReviewService', () => {
     it('throws ForbiddenError for non-owner', async () => {
       vi.mocked(prisma.productReview.findUnique).mockResolvedValue({
         id: 'rev_1', productId: 'prod_1', userId: 'usr_2', rating: 5, title: 'Great', body: 'Excellent', status: 'PUBLISHED',
-        createdAt: '2024-01-01', updatedAt: '2024-01-01',
-      });
+        createdAt: new Date('2024-01-01'), updatedAt: new Date('2024-01-01'),
+      } as any);
 
       await expect(ReviewService.updateReview('usr_1', 'rev_1', { rating: 4 })).rejects.toThrow(ForbiddenError);
     });
@@ -232,9 +232,9 @@ describe('ReviewService', () => {
     it('deletes review successfully', async () => {
       vi.mocked(prisma.productReview.findUnique).mockResolvedValue({
         id: 'rev_1', productId: 'prod_1', userId: 'usr_1', rating: 5, title: 'Great', body: 'Excellent', status: 'PUBLISHED',
-        createdAt: '2024-01-01', updatedAt: '2024-01-01',
-      });
-      vi.mocked(prisma.productReview.delete).mockResolvedValue({ id: 'rev_1' });
+        createdAt: new Date('2024-01-01'), updatedAt: new Date('2024-01-01'),
+      } as any);
+      vi.mocked(prisma.productReview.delete).mockResolvedValue({ id: 'rev_1' } as any);
 
       await ReviewService.deleteReview('usr_1', 'rev_1');
       expect(prisma.productReview.delete).toHaveBeenCalledWith({ where: { id: 'rev_1' } });

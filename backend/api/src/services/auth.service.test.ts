@@ -68,7 +68,7 @@ describe('AuthService', () => {
   it('logs in with valid credentials', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
       id: 'usr_1', email: 'test@shopvibe.store', passwordHash: 'hash', name: 'Test', role: 'CUSTOMER', isActive: true,
-    });
+    } as any);
 
     await AuthService.login({ email: 'test@shopvibe.store', password: 'password123' }, mockRes);
     expect(prisma.user.findUnique).toHaveBeenCalled();
@@ -77,7 +77,7 @@ describe('AuthService', () => {
   it('throws UnauthorizedError with invalid password', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
       id: 'usr_1', email: 'test@shopvibe.store', passwordHash: 'hash', name: 'Test', role: 'CUSTOMER', isActive: true,
-    });
+    } as any);
     vi.mocked(bcrypt.compare).mockResolvedValueOnce(false);
 
     await expect(
