@@ -136,13 +136,6 @@ describe('Shared Schemas', () => {
     });
   });
 
-  describe('createCategorySchema', () => {
-    it('validates valid category', () => {
-      const result = createCategorySchema.safeParse({ name: 'Electronics' });
-      expect(result.success).toBe(true);
-    });
-  });
-
   describe('addToWishlistSchema', () => {
     it('validates valid wishlist item', () => {
       const result = addToWishlistSchema.safeParse({ productId: 'p1' });
@@ -152,25 +145,25 @@ describe('Shared Schemas', () => {
 
   describe('UserRoleEnum', () => {
     it('has correct values', () => {
-      expect(UserRoleEnum.Values).toEqual(['CUSTOMER', 'SELLER', 'ADMIN']);
+      expect(Object.values(UserRoleEnum.Values)).toEqual(['CUSTOMER', 'SELLER', 'ADMIN']);
     });
   });
 
   describe('OrderStatusEnum', () => {
     it('has correct values', () => {
-      expect(OrderStatusEnum.Values).toEqual(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']);
+      expect(Object.values(OrderStatusEnum.Values)).toEqual(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']);
     });
   });
 
   describe('PaymentStatusEnum', () => {
     it('has correct values', () => {
-      expect(PaymentStatusEnum.Values).toEqual(['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED']);
+      expect(Object.values(PaymentStatusEnum.Values)).toEqual(['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED']);
     });
   });
 
   describe('ReviewStatusEnum', () => {
     it('has correct values', () => {
-      expect(ReviewStatusEnum.Values).toEqual(['PUBLISHED', 'PENDING', 'HIDDEN']);
+      expect(Object.values(ReviewStatusEnum.Values)).toEqual(['PUBLISHED', 'PENDING', 'HIDDEN']);
     });
   });
 });

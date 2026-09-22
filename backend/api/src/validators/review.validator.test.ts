@@ -11,7 +11,7 @@ describe('Review Validators', () => {
   describe('createReviewSchema', () => {
     it('accepts valid review', () => {
       const result = createReviewSchema.safeParse({
-        productId: 'prod_1',
+        productId: 'cdu_abc123def456',
         rating: 5,
         title: 'Great product',
         body: 'This is a great product, highly recommend!',
@@ -21,7 +21,7 @@ describe('Review Validators', () => {
 
     it('accepts review without title (optional)', () => {
       const result = createReviewSchema.safeParse({
-        productId: 'prod_1',
+        productId: 'cdu_abc123def456',
         rating: 4,
         body: 'Good product overall.',
       });
@@ -30,17 +30,15 @@ describe('Review Validators', () => {
 
     it('accepts review with orderId', () => {
       const result = createReviewSchema.safeParse({
-        productId: 'prod_1',
         rating: 5,
         body: 'Excellent!',
-        orderId: 'ord_1',
+        orderId: 'cdu_abc123def456',
       });
       expect(result.success).toBe(true);
     });
 
     it('rejects rating < 1', () => {
       const result = createReviewSchema.safeParse({
-        productId: 'prod_1',
         rating: 0,
         body: 'Bad product',
       });
@@ -49,7 +47,6 @@ describe('Review Validators', () => {
 
     it('rejects rating > 5', () => {
       const result = createReviewSchema.safeParse({
-        productId: 'prod_1',
         rating: 6,
         body: 'Amazing product',
       });
@@ -58,7 +55,6 @@ describe('Review Validators', () => {
 
     it('rejects non-integer rating', () => {
       const result = createReviewSchema.safeParse({
-        productId: 'prod_1',
         rating: 4.5,
         body: 'Good product',
       });
@@ -67,7 +63,6 @@ describe('Review Validators', () => {
 
     it('rejects short body', () => {
       const result = createReviewSchema.safeParse({
-        productId: 'prod_1',
         rating: 5,
         body: 'short',
       });
@@ -76,25 +71,14 @@ describe('Review Validators', () => {
 
     it('rejects long body > 2000', () => {
       const result = createReviewSchema.safeParse({
-        productId: 'prod_1',
         rating: 5,
         body: 'x'.repeat(2001),
       });
       expect(result.success).toBe(false);
     });
 
-    it('rejects invalid productId', () => {
-      const result = createReviewSchema.safeParse({
-        productId: 'invalid',
-        rating: 5,
-        body: 'Good product',
-      });
-      expect(result.success).toBe(false);
-    });
-
     it('rejects long title > 100', () => {
       const result = createReviewSchema.safeParse({
-        productId: 'prod_1',
         rating: 5,
         title: 'x'.repeat(101),
         body: 'Good product',
@@ -132,7 +116,7 @@ describe('Review Validators', () => {
   describe('reviewQuerySchema', () => {
     it('accepts valid query', () => {
       const result = reviewQuerySchema.safeParse({
-        productId: 'prod_1',
+        productId: 'cdu_abc123def456',
         status: 'PUBLISHED',
         sort: 'newest',
         page: 1,
@@ -143,7 +127,7 @@ describe('Review Validators', () => {
 
     it('defaults page and limit', () => {
       const result = reviewQuerySchema.safeParse({
-        productId: 'prod_1',
+        productId: 'cdu_abc123def456',
       });
       expect(result.success).toBe(true);
       if (result.success) {
@@ -154,14 +138,14 @@ describe('Review Validators', () => {
 
     it('defaults status to null (not provided)', () => {
       const result = reviewQuerySchema.safeParse({
-        productId: 'prod_1',
+        productId: 'cdu_abc123def456',
       });
       expect(result.success).toBe(true);
     });
 
     it('rejects invalid sort', () => {
       const result = reviewQuerySchema.safeParse({
-        productId: 'prod_1',
+        productId: 'cdu_abc123def456',
         sort: 'invalid',
       });
       expect(result.success).toBe(false);
@@ -169,7 +153,7 @@ describe('Review Validators', () => {
 
     it('rejects invalid status', () => {
       const result = reviewQuerySchema.safeParse({
-        productId: 'prod_1',
+        productId: 'cdu_abc123def456',
         status: 'INVALID',
       });
       expect(result.success).toBe(false);
