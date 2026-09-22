@@ -11,7 +11,6 @@ import {
   updateCartItemSchema,
   createAddressSchema,
   createProductReviewSchema,
-  createCategorySchema,
   addToWishlistSchema,
   UserRoleEnum,
   OrderStatusEnum,
