@@ -20,7 +20,7 @@ vi.mock('../lib/prisma.js', () => ({
 describe('ProductService', () => {
   describe('getProducts', () => {
     it('returns paginated products', async () => {
-      const mockProducts = [{ id: 'prod_1', title: 'Test' }];
+      const mockProducts = [{ id: 'prod_1', title: 'Test' }] as any[];
       vi.mocked(prisma.product.findMany).mockResolvedValue(mockProducts);
       vi.mocked(prisma.product.count).mockResolvedValue(1);
       vi.mocked(prisma.category.findMany).mockResolvedValue([]);
