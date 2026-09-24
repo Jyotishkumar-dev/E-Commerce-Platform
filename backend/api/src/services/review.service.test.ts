@@ -35,7 +35,7 @@ describe('ReviewService', () => {
 
   describe('getProductReviews', () => {
     it('returns paginated reviews', async () => {
-      const mockReviews = [{ id: 'rev_1', rating: 5, title: 'Great', body: 'Excellent', productId: 'prod_1', userId: 'usr_1', isVerifiedPurchase: true, status: 'PUBLISHED', createdAt: '2024-01-01', updatedAt: '2024-01-01', user: { id: 'usr_1', name: 'John' } }];
+      const mockReviews = [{ id: 'rev_1', rating: 5, title: 'Great', body: 'Excellent', productId: 'prod_1', userId: 'usr_1', isVerifiedPurchase: true, status: 'PUBLISHED', createdAt: '2024-01-01', updatedAt: '2024-01-01', user: { id: 'usr_1', name: 'John' } }] as any;
       vi.mocked(prisma.productReview.findMany).mockResolvedValue(mockReviews);
       vi.mocked(prisma.productReview.count).mockResolvedValue(1);
 

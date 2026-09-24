@@ -49,7 +49,7 @@ describe('AuthService', () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
     vi.mocked(prisma.user.create).mockResolvedValue({
       id: 'usr_1', email: 'new@shopvibe.store', name: 'New User', role: 'CUSTOMER',
-    });
+    } as any);
 
     const result = await AuthService.register({ email: 'new@shopvibe.store', password: 'password123', name: 'New User' }, mockRes);
     expect(result).toBeDefined();
@@ -58,7 +58,7 @@ describe('AuthService', () => {
   });
 
   it('throws ConflictError for duplicate email', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ id: 'usr_1', email: 'existing@shopvibe.store' });
+    vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ id: 'usr_1', email: 'existing@shopvibe.store' } as any);
 
     await expect(
       AuthService.register({ email: 'existing@shopvibe.store', password: 'password123' }, mockRes)
@@ -78,7 +78,7 @@ describe('AuthService', () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
       id: 'usr_1', email: 'test@shopvibe.store', passwordHash: 'hash', name: 'Test', role: 'CUSTOMER', isActive: true,
     } as any);
-    vi.mocked(bcrypt.compare).mockResolvedValueOnce(false);
+    vi.mocked(bcrypt.compare).mockResolvedValueOnce(false as any);
 
     await expect(
       AuthService.login({ email: 'test@shopvibe.store', password: 'wrongpass' }, mockRes)
