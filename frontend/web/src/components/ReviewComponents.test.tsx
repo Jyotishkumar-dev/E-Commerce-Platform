@@ -24,7 +24,7 @@ const mockSummary = {
 const mockReviews = [
   {
     id: 'rev_1',
-    rating: 5,
+    rating: 5 as const,
     title: 'Great product',
     body: 'This is amazing, highly recommend!',
     isVerifiedPurchase: true,
@@ -33,7 +33,7 @@ const mockReviews = [
   },
   {
     id: 'rev_2',
-    rating: 3,
+    rating: 3 as const,
     title: 'Average',
     body: 'It is okay, nothing special about it.',
     isVerifiedPurchase: false,

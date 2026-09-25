@@ -69,27 +69,29 @@ export function ProductDetailModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose, viewerOpen, galleryImages.length]);
 
-  if (!product) return null;
-  const maxQty = Math.min(product.stock, 10);
+  const isOutOfStock = product!.stock <= 0;
+  const maxQty = Math.min(product!.stock, 10);
 
   const hasDiscount =
-    Boolean(product.compareAtPriceCents) &&
-    (product.compareAtPriceCents ?? 0) > product.priceCents;
+    Boolean(product!.compareAtPriceCents) &&
+    (product!.compareAtPriceCents ?? 0) > product!.priceCents;
 
   const savingsAmount = hasDiscount
-    ? (product.compareAtPriceCents ?? 0) - product.priceCents
+    ? (product!.compareAtPriceCents ?? 0) - product!.priceCents
     : 0;
 
   const discountPercent = hasDiscount
-    ? Math.round((savingsAmount / (product.compareAtPriceCents ?? 1)) * 100)
+    ? Math.round((savingsAmount / (product!.compareAtPriceCents ?? 1)) * 100)
     : 0;
 
   const handleAddToCart = () => {
     if (!isOutOfStock) {
-      onAdd(product.id, quantity);
+      onAdd(product!.id, quantity);
       onClose();
     }
   };
+
+  if (!product) return null;
 
   return (
     <>
