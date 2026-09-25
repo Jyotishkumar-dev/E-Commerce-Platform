@@ -1,7 +1,6 @@
-import { useEffect, useState, Fragment } from 'react';
+import { Fragment } from 'react';
 import { useOrder } from '../hooks/useOrders';
 import { formatMoney, formatAddress, getOrderStatusColor, formatOrderStatus } from '../hooks/useOrders';
-import type { Order } from '../lib/api';
 
 interface OrderConfirmationPageProps {
   orderId: string;
