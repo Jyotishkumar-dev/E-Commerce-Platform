@@ -30,7 +30,18 @@ export function ProductDetailModal({
   const { reviews, pagination, refetch: refetchReviews } = useProductReviews(product?.id ?? null, { sort: 'newest', page: reviewsPage, limit: 5 });
   const { review: userReview } = useUserReview(product?.id ?? null);
 
-  if (!product) return null;
+  const handleOpenViewer = useCallback((index: number) => {
+    setViewerIndex(index);
+    setViewerOpen(true);
+  }, []);
+
+  const handleCloseViewer = useCallback(() => {
+    setViewerOpen(false);
+  }, []);
+
+  const handleNavigateViewer = useCallback((index: number) => {
+    setViewerIndex(index);
+  }, []);
 
   const galleryImages = product
     ? (product.images ?? []).length > 0
@@ -58,7 +69,7 @@ export function ProductDetailModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose, viewerOpen, galleryImages.length]);
 
-  const isOutOfStock = product.stock <= 0;
+  if (!product) return null;
   const maxQty = Math.min(product.stock, 10);
 
   const hasDiscount =
@@ -79,19 +90,6 @@ export function ProductDetailModal({
       onClose();
     }
   };
-
-  const handleOpenViewer = useCallback((index: number) => {
-    setViewerIndex(index);
-    setViewerOpen(true);
-  }, []);
-
-  const handleCloseViewer = useCallback(() => {
-    setViewerOpen(false);
-  }, []);
-
-  const handleNavigateViewer = useCallback((index: number) => {
-    setViewerIndex(index);
-  }, []);
 
   return (
     <>

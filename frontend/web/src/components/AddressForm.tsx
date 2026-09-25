@@ -39,9 +39,9 @@ export function AddressForm({ initialData, onClose, onSuccess }: AddressFormProp
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState('');
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     if (initialData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
         fullName: initialData.fullName,
         phone: initialData.phone,

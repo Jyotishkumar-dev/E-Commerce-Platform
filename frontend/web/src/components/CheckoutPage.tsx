@@ -67,24 +67,6 @@ export function CheckoutPage({ onClose, onOrderComplete }: CheckoutPageProps) {
   const [success, setSuccess] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
-  useEffect(() => {
-    if (defaultAddress && !selectedAddressId) {
-      setSelectedAddressId(defaultAddress.id);
-    }
-  }, [defaultAddress, selectedAddressId]);
-
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    script.onload = () => setRazorpayLoaded(true);
-    script.onerror = () => setRazorpayLoaded(false);
-    document.body.appendChild(script);
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId) ?? null;
 
   const handlePlaceOrder = async () => {
