@@ -8,7 +8,8 @@ export default defineConfig({
     globals: true,
     env: {
       NODE_ENV: 'test',
-      DATABASE_URL: 'postgresql://smart_commerce:smart_commerce@localhost:5432/smart_commerce?schema=public',
+      DATABASE_URL:
+        'postgresql://smart_commerce:smart_commerce@localhost:5432/smart_commerce?schema=public',
       REDIS_URL: 'redis://localhost:6379',
       CORS_ORIGIN: 'http://localhost:5173',
       JWT_ACCESS_SECRET: 'test-secret-key-for-testing-at-least-32-chars-long',

@@ -28,8 +28,10 @@ vi.mock('../services/admin.service.js', () => ({
 }));
 
 vi.mock('../utils/response.js', () => ({
-  ok: (res: any, _req: any, data: any, message: string) => res.status(200).json({ success: true, data, message }),
-  created: (res: any, _req: any, data: any, message: string) => res.status(201).json({ success: true, data, message }),
+  ok: (res: any, _req: any, data: any, message: string) =>
+    res.status(200).json({ success: true, data, message }),
+  created: (res: any, _req: any, data: any, message: string) =>
+    res.status(201).json({ success: true, data, message }),
 }));
 
 describe('AdminController Security', () => {
@@ -40,25 +42,27 @@ describe('AdminController Security', () => {
     return res;
   };
 
-  const adminReq = (overrides: Record<string, any> = {}) => ({
-    user: { id: 'usr_admin', email: 'admin@shopvibe.store', role: 'ADMIN' },
-    query: {},
-    body: {},
-    params: {},
-    header: vi.fn().mockReturnValue(undefined),
-    ip: '127.0.0.1',
-    ...overrides,
-  }) as unknown as Request;
+  const adminReq = (overrides: Record<string, any> = {}) =>
+    ({
+      user: { id: 'usr_admin', email: 'admin@shopvibe.store', role: 'ADMIN' },
+      query: {},
+      body: {},
+      params: {},
+      header: vi.fn().mockReturnValue(undefined),
+      ip: '127.0.0.1',
+      ...overrides,
+    }) as unknown as Request;
 
-  const customerReq = (overrides: Record<string, any> = {}) => ({
-    user: { id: 'usr_1', email: 'customer@shopvibe.store', role: 'CUSTOMER' },
-    query: {},
-    body: {},
-    params: {},
-    header: vi.fn().mockReturnValue(undefined),
-    ip: '127.0.0.1',
-    ...overrides,
-  }) as unknown as Request;
+  const customerReq = (overrides: Record<string, any> = {}) =>
+    ({
+      user: { id: 'usr_1', email: 'customer@shopvibe.store', role: 'CUSTOMER' },
+      query: {},
+      body: {},
+      params: {},
+      header: vi.fn().mockReturnValue(undefined),
+      ip: '127.0.0.1',
+      ...overrides,
+    }) as unknown as Request;
 
   const next = vi.fn();
 
@@ -68,25 +72,80 @@ describe('AdminController Security', () => {
   });
 
   describe('Authorization enforcement', () => {
-  const endpoints = [
-    ['getDashboard', () => AdminController.getDashboard(customerReq() as any, mockRes(), next)],
-    ['getOrders', () => AdminController.getOrders(customerReq() as any, mockRes(), next)],
-    ['getOrder', () => AdminController.getOrder({ ...customerReq(), params: { orderId: 'ord_1' } } as any, mockRes(), next)],
-    ['updateOrderStatus', () => AdminController.updateOrderStatus({ ...customerReq(), params: { orderId: 'ord_1' }, body: { status: 'CONFIRMED' } } as any, mockRes(), next)],
-    ['getProducts', () => AdminController.getProducts(customerReq() as any, mockRes(), next)],
-    ['createProduct', () => AdminController.createProduct(customerReq() as any, mockRes(), next)],
-    ['updateProduct', () => AdminController.updateProduct({ ...customerReq(), params: { productId: 'prd_1' }, body: {} } as any, mockRes(), next)],
-    ['updateProductStock', () => AdminController.updateProductStock({ ...customerReq(), params: { productId: 'prd_1' }, body: { stock: 1 } } as any, mockRes(), next)],
-    ['getCategories', () => AdminController.getCategories(customerReq() as any, mockRes(), next)],
-    ['updateCategory', () => AdminController.updateCategory({ ...customerReq(), params: { categoryId: 'cat_1' }, body: {} } as any, mockRes(), next)],
-    ['deleteCategory', () => AdminController.deleteCategory({ ...customerReq(), params: { categoryId: 'cat_1' } } as any, mockRes(), next)],
-    ['getCustomers', () => AdminController.getCustomers(customerReq() as any, mockRes(), next)],
-    ['getCoupons', () => AdminController.getCoupons(customerReq() as any, mockRes(), next)],
-    ['createCoupon', () => AdminController.createCoupon(customerReq() as any, mockRes(), next)],
-    ['getAnalytics', () => AdminController.getAnalytics(customerReq() as any, mockRes(), next)],
-    ['validateCoupon', () => AdminController.validateCoupon(customerReq() as any, mockRes(), next)],
-    ['getInventory', () => AdminController.getInventory(customerReq() as any, mockRes(), next)],
-  ] as const;
+    const endpoints = [
+      ['getDashboard', () => AdminController.getDashboard(customerReq() as any, mockRes(), next)],
+      ['getOrders', () => AdminController.getOrders(customerReq() as any, mockRes(), next)],
+      [
+        'getOrder',
+        () =>
+          AdminController.getOrder(
+            { ...customerReq(), params: { orderId: 'ord_1' } } as any,
+            mockRes(),
+            next,
+          ),
+      ],
+      [
+        'updateOrderStatus',
+        () =>
+          AdminController.updateOrderStatus(
+            {
+              ...customerReq(),
+              params: { orderId: 'ord_1' },
+              body: { status: 'CONFIRMED' },
+            } as any,
+            mockRes(),
+            next,
+          ),
+      ],
+      ['getProducts', () => AdminController.getProducts(customerReq() as any, mockRes(), next)],
+      ['createProduct', () => AdminController.createProduct(customerReq() as any, mockRes(), next)],
+      [
+        'updateProduct',
+        () =>
+          AdminController.updateProduct(
+            { ...customerReq(), params: { productId: 'prd_1' }, body: {} } as any,
+            mockRes(),
+            next,
+          ),
+      ],
+      [
+        'updateProductStock',
+        () =>
+          AdminController.updateProductStock(
+            { ...customerReq(), params: { productId: 'prd_1' }, body: { stock: 1 } } as any,
+            mockRes(),
+            next,
+          ),
+      ],
+      ['getCategories', () => AdminController.getCategories(customerReq() as any, mockRes(), next)],
+      [
+        'updateCategory',
+        () =>
+          AdminController.updateCategory(
+            { ...customerReq(), params: { categoryId: 'cat_1' }, body: {} } as any,
+            mockRes(),
+            next,
+          ),
+      ],
+      [
+        'deleteCategory',
+        () =>
+          AdminController.deleteCategory(
+            { ...customerReq(), params: { categoryId: 'cat_1' } } as any,
+            mockRes(),
+            next,
+          ),
+      ],
+      ['getCustomers', () => AdminController.getCustomers(customerReq() as any, mockRes(), next)],
+      ['getCoupons', () => AdminController.getCoupons(customerReq() as any, mockRes(), next)],
+      ['createCoupon', () => AdminController.createCoupon(customerReq() as any, mockRes(), next)],
+      ['getAnalytics', () => AdminController.getAnalytics(customerReq() as any, mockRes(), next)],
+      [
+        'validateCoupon',
+        () => AdminController.validateCoupon(customerReq() as any, mockRes(), next),
+      ],
+      ['getInventory', () => AdminController.getInventory(customerReq() as any, mockRes(), next)],
+    ] as const;
 
     for (const [name, call] of endpoints) {
       it(`${name} calls next with ForbiddenError for customer`, async () => {
@@ -99,7 +158,13 @@ describe('AdminController Security', () => {
   describe('Unauthenticated access', () => {
     it('all admin endpoints call next with error when no user', async () => {
       const res = mockRes();
-      const req = { user: undefined, query: {}, body: {}, params: {}, header: vi.fn() } as unknown as Request;
+      const req = {
+        user: undefined,
+        query: {},
+        body: {},
+        params: {},
+        header: vi.fn(),
+      } as unknown as Request;
       await AdminController.getDashboard(req as any, res, next);
       expect(next).toHaveBeenCalled();
     });
@@ -115,7 +180,10 @@ describe('AdminController Security', () => {
     });
 
     it('createProduct succeeds for admin', async () => {
-      vi.mocked(AdminService.createProduct).mockResolvedValueOnce({ id: 'prd_1', title: 'Test' } as any);
+      vi.mocked(AdminService.createProduct).mockResolvedValueOnce({
+        id: 'prd_1',
+        title: 'Test',
+      } as any);
       const res = mockRes();
       const req = adminReq({ body: { title: 'Test', priceCents: 1000, stock: 10 } });
       await AdminController.createProduct(req as any, res, next);
@@ -123,7 +191,10 @@ describe('AdminController Security', () => {
     });
 
     it('updateProduct succeeds for admin', async () => {
-      vi.mocked(AdminService.updateProduct).mockResolvedValueOnce({ id: 'prd_1', title: 'Updated' } as any);
+      vi.mocked(AdminService.updateProduct).mockResolvedValueOnce({
+        id: 'prd_1',
+        title: 'Updated',
+      } as any);
       const res = mockRes();
       const req = adminReq({ params: { productId: 'prd_1' }, body: { title: 'Updated' } });
       await AdminController.updateProduct(req as any, res, next);
@@ -131,7 +202,9 @@ describe('AdminController Security', () => {
     });
 
     it('updateProductStock rejects negative stock for admin', async () => {
-      vi.mocked(AdminService.updateProductStock).mockRejectedValueOnce(new Error('Stock must be >= 0'));
+      vi.mocked(AdminService.updateProductStock).mockRejectedValueOnce(
+        new Error('Stock must be >= 0'),
+      );
       const res = mockRes();
       const req = adminReq({ params: { productId: 'prd_1' }, body: { stock: -1 } });
       await AdminController.updateProductStock(req as any, res, next);
@@ -154,7 +227,20 @@ describe('AdminController Security', () => {
     });
 
     it('validateCoupon succeeds for admin', async () => {
-      vi.mocked(AdminService.validateCoupon).mockResolvedValueOnce({ valid: true, coupon: { id: 'cpn_1', code: 'TEST', type: 'PERCENTAGE', value: 10, isActive: true, minimumOrderValueCents: 0, maximumDiscountCents: null, usageLimit: null, usedCount: 0 } } as any);
+      vi.mocked(AdminService.validateCoupon).mockResolvedValueOnce({
+        valid: true,
+        coupon: {
+          id: 'cpn_1',
+          code: 'TEST',
+          type: 'PERCENTAGE',
+          value: 10,
+          isActive: true,
+          minimumOrderValueCents: 0,
+          maximumDiscountCents: null,
+          usageLimit: null,
+          usedCount: 0,
+        },
+      } as any);
       const res = mockRes();
       const req = adminReq({ body: { code: 'TEST' } });
       await AdminController.validateCoupon(req as any, res, next);
@@ -162,7 +248,9 @@ describe('AdminController Security', () => {
     });
 
     it('validateCoupon rejects invalid coupon code', async () => {
-      vi.mocked(AdminService.validateCoupon).mockRejectedValueOnce(new ForbiddenError('Coupon not found.'));
+      vi.mocked(AdminService.validateCoupon).mockRejectedValueOnce(
+        new ForbiddenError('Coupon not found.'),
+      );
       const res = mockRes();
       const req = adminReq({ body: { code: 'INVALID' } });
       await AdminController.validateCoupon(req as any, res, next);
@@ -171,7 +259,17 @@ describe('AdminController Security', () => {
 
     it('getInventory succeeds for admin', async () => {
       vi.mocked(AdminService.getInventory).mockResolvedValueOnce([
-        { id: 'p1', title: 'Test', sku: 'SKU1', stock: 10, category: 'Electronics', categoryRef: null, isActive: true, lowStock: false, outOfStock: false },
+        {
+          id: 'p1',
+          title: 'Test',
+          sku: 'SKU1',
+          stock: 10,
+          category: 'Electronics',
+          categoryRef: null,
+          isActive: true,
+          lowStock: false,
+          outOfStock: false,
+        },
       ] as any);
       const res = mockRes();
       const req = adminReq();

@@ -19,12 +19,33 @@ router.post('/register', authLimiter, validateBody(registerSchema), AuthControll
 router.post('/login', authLimiter, validateBody(loginSchema), AuthController.login);
 router.post('/refresh-token', AuthController.refreshSession);
 router.post('/logout', AuthController.logout);
-router.post('/forgot-password', authLimiter, validateBody(forgotPasswordSchema), AuthController.forgotPassword);
-router.post('/reset-password', authLimiter, validateBody(resetPasswordSchema), AuthController.resetPassword);
+router.post(
+  '/forgot-password',
+  authLimiter,
+  validateBody(forgotPasswordSchema),
+  AuthController.forgotPassword,
+);
+router.post(
+  '/reset-password',
+  authLimiter,
+  validateBody(resetPasswordSchema),
+  AuthController.resetPassword,
+);
 
 // Authenticated customer/admin profile management
 router.get('/me', authenticate, AuthController.getMe);
-router.patch('/profile', authenticate, validateBody(updateProfileSchema), AuthController.updateProfile);
-router.post('/change-password', authenticate, authLimiter, validateBody(changePasswordSchema), AuthController.changePassword);
+router.patch(
+  '/profile',
+  authenticate,
+  validateBody(updateProfileSchema),
+  AuthController.updateProfile,
+);
+router.post(
+  '/change-password',
+  authenticate,
+  authLimiter,
+  validateBody(changePasswordSchema),
+  AuthController.changePassword,
+);
 
 export { router as authRouter };

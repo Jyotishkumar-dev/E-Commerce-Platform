@@ -14,7 +14,13 @@ vi.mock('razorpay', () => ({
 vi.mock('../lib/prisma.js', () => {
   const mockPrisma: any = {
     order: { findUnique: vi.fn(), update: vi.fn() },
-    payment: { findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn(), upsert: vi.fn(), update: vi.fn() },
+    payment: {
+      findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
+      upsert: vi.fn(),
+      update: vi.fn(),
+    },
     product: { update: vi.fn() },
     cart: { findUnique: vi.fn() },
     cartItem: { deleteMany: vi.fn() },
@@ -44,7 +50,13 @@ describe('PaymentService', () => {
       vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
         id: 'ord_1',
         userId: 'usr_2',
-        payment: { id: 'pay_1', status: 'SUCCESS', provider: 'RAZORPAY', providerPaymentId: 'rp_pay_1', amountCents: 100000 },
+        payment: {
+          id: 'pay_1',
+          status: 'SUCCESS',
+          provider: 'RAZORPAY',
+          providerPaymentId: 'rp_pay_1',
+          amountCents: 100000,
+        },
       } as any);
       await expect(PaymentService.refundPayment('usr_1', 'ord_1')).rejects.toThrow(NotFoundError);
     });
@@ -62,7 +74,13 @@ describe('PaymentService', () => {
       vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
         id: 'ord_1',
         userId: 'usr_1',
-        payment: { id: 'pay_1', status: 'REFUNDED', provider: 'RAZORPAY', providerPaymentId: 'rp_pay_1', amountCents: 100000 },
+        payment: {
+          id: 'pay_1',
+          status: 'REFUNDED',
+          provider: 'RAZORPAY',
+          providerPaymentId: 'rp_pay_1',
+          amountCents: 100000,
+        },
       } as any);
       await expect(PaymentService.refundPayment('usr_1', 'ord_1')).rejects.toThrow(ConflictError);
     });
@@ -71,13 +89,25 @@ describe('PaymentService', () => {
       vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
         id: 'ord_1',
         userId: 'usr_1',
-        payment: { id: 'pay_1', status: 'PENDING', provider: 'RAZORPAY', providerPaymentId: 'rp_pay_1', amountCents: 100000 },
+        payment: {
+          id: 'pay_1',
+          status: 'PENDING',
+          provider: 'RAZORPAY',
+          providerPaymentId: 'rp_pay_1',
+          amountCents: 100000,
+        },
       } as any);
       await expect(PaymentService.refundPayment('usr_1', 'ord_1')).rejects.toThrow(ConflictError);
     });
 
     it('processes Razorpay refund and marks payment as REFUNDED', async () => {
-      const mockPayment = { id: 'pay_1', status: 'SUCCESS', provider: 'RAZORPAY', providerPaymentId: 'rp_pay_1', amountCents: 100000 };
+      const mockPayment = {
+        id: 'pay_1',
+        status: 'SUCCESS',
+        provider: 'RAZORPAY',
+        providerPaymentId: 'rp_pay_1',
+        amountCents: 100000,
+      };
       vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
         id: 'ord_1',
         userId: 'usr_1',
@@ -89,13 +119,25 @@ describe('PaymentService', () => {
       const result = await PaymentService.refundPayment('usr_1', 'ord_1');
 
       expect(mockRazorpay.payments.refund).toHaveBeenCalledWith('rp_pay_1', { amount: 100000 });
-      expect(prisma.payment.update).toHaveBeenCalledWith({ where: { id: 'pay_1' }, data: { status: 'REFUNDED' } });
-      expect(prisma.order.update).toHaveBeenCalledWith({ where: { id: 'ord_1' }, data: { status: 'CANCELLED' } });
+      expect(prisma.payment.update).toHaveBeenCalledWith({
+        where: { id: 'pay_1' },
+        data: { status: 'REFUNDED' },
+      });
+      expect(prisma.order.update).toHaveBeenCalledWith({
+        where: { id: 'ord_1' },
+        data: { status: 'CANCELLED' },
+      });
       expect(result).toEqual({ message: 'Refund processed successfully' });
     });
 
     it('processes COD refund without Razorpay call', async () => {
-      const mockPayment = { id: 'pay_1', status: 'SUCCESS', provider: 'COD', providerPaymentId: null, amountCents: 100000 };
+      const mockPayment = {
+        id: 'pay_1',
+        status: 'SUCCESS',
+        provider: 'COD',
+        providerPaymentId: null,
+        amountCents: 100000,
+      };
       vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
         id: 'ord_1',
         userId: 'usr_1',
@@ -104,19 +146,33 @@ describe('PaymentService', () => {
 
       const result = await PaymentService.refundPayment('usr_1', 'ord_1');
 
-      expect(prisma.payment.update).toHaveBeenCalledWith({ where: { id: 'pay_1' }, data: { status: 'REFUNDED' } });
-      expect(prisma.order.update).toHaveBeenCalledWith({ where: { id: 'ord_1' }, data: { status: 'CANCELLED' } });
+      expect(prisma.payment.update).toHaveBeenCalledWith({
+        where: { id: 'pay_1' },
+        data: { status: 'REFUNDED' },
+      });
+      expect(prisma.order.update).toHaveBeenCalledWith({
+        where: { id: 'ord_1' },
+        data: { status: 'CANCELLED' },
+      });
       expect(result).toEqual({ message: 'Refund processed successfully' });
     });
 
     it('throws BadRequestError when Razorpay refund fails', async () => {
-      const mockPayment = { id: 'pay_1', status: 'SUCCESS', provider: 'RAZORPAY', providerPaymentId: 'rp_pay_1', amountCents: 100000 };
+      const mockPayment = {
+        id: 'pay_1',
+        status: 'SUCCESS',
+        provider: 'RAZORPAY',
+        providerPaymentId: 'rp_pay_1',
+        amountCents: 100000,
+      };
       vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
         id: 'ord_1',
         userId: 'usr_1',
         payment: mockPayment,
       } as any);
-      const mockRazorpay = { payments: { refund: vi.fn().mockRejectedValue(new Error('Razorpay error')) } };
+      const mockRazorpay = {
+        payments: { refund: vi.fn().mockRejectedValue(new Error('Razorpay error')) },
+      };
       vi.mocked(Razorpay as any).mockImplementationOnce(() => mockRazorpay);
 
       await expect(PaymentService.refundPayment('usr_1', 'ord_1')).rejects.toThrow(BadRequestError);
@@ -124,7 +180,13 @@ describe('PaymentService', () => {
     });
 
     it('is idempotent - does not process refund twice for same payment', async () => {
-      const mockPayment = { id: 'pay_1', status: 'REFUNDED', provider: 'RAZORPAY', providerPaymentId: 'rp_pay_1', amountCents: 100000 };
+      const mockPayment = {
+        id: 'pay_1',
+        status: 'REFUNDED',
+        provider: 'RAZORPAY',
+        providerPaymentId: 'rp_pay_1',
+        amountCents: 100000,
+      };
       vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
         id: 'ord_1',
         userId: 'usr_1',
@@ -143,27 +205,39 @@ describe('PaymentService', () => {
 
     it('throws NotFoundError when user does not own the order', async () => {
       vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
-        id: 'ord_1', userId: 'usr_2', payment: { id: 'pay_1', status: 'PENDING' },
+        id: 'ord_1',
+        userId: 'usr_2',
+        payment: { id: 'pay_1', status: 'PENDING' },
       } as any);
       await expect(PaymentService.cancelPayment('usr_1', 'ord_1')).rejects.toThrow(NotFoundError);
     });
 
     it('throws ConflictError when payment already completed', async () => {
       vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
-        id: 'ord_1', userId: 'usr_1', payment: { id: 'pay_1', status: 'SUCCESS' },
+        id: 'ord_1',
+        userId: 'usr_1',
+        payment: { id: 'pay_1', status: 'SUCCESS' },
       } as any);
       await expect(PaymentService.cancelPayment('usr_1', 'ord_1')).rejects.toThrow(ConflictError);
     });
 
     it('cancels pending payment and marks order as CANCELLED', async () => {
       vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
-        id: 'ord_1', userId: 'usr_1', payment: { id: 'pay_1', status: 'PENDING' },
+        id: 'ord_1',
+        userId: 'usr_1',
+        payment: { id: 'pay_1', status: 'PENDING' },
       } as any);
 
       const result = await PaymentService.cancelPayment('usr_1', 'ord_1');
 
-      expect(prisma.payment.update).toHaveBeenCalledWith({ where: { id: 'pay_1' }, data: { status: 'FAILED' } });
-      expect(prisma.order.update).toHaveBeenCalledWith({ where: { id: 'ord_1' }, data: { status: 'CANCELLED' } });
+      expect(prisma.payment.update).toHaveBeenCalledWith({
+        where: { id: 'pay_1' },
+        data: { status: 'FAILED' },
+      });
+      expect(prisma.order.update).toHaveBeenCalledWith({
+        where: { id: 'ord_1' },
+        data: { status: 'CANCELLED' },
+      });
       expect(result).toEqual({ message: 'Payment cancelled successfully' });
     });
   });
@@ -171,14 +245,18 @@ describe('PaymentService', () => {
   describe('security - ownership validation', () => {
     it('refund rejects cross-user access', async () => {
       vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
-        id: 'ord_1', userId: 'usr_999', payment: { id: 'pay_1', status: 'SUCCESS', provider: 'COD' },
+        id: 'ord_1',
+        userId: 'usr_999',
+        payment: { id: 'pay_1', status: 'SUCCESS', provider: 'COD' },
       } as any);
       await expect(PaymentService.refundPayment('usr_1', 'ord_1')).rejects.toThrow(NotFoundError);
     });
 
     it('cancel rejects cross-user access', async () => {
       vi.mocked(prisma.order.findUnique).mockResolvedValueOnce({
-        id: 'ord_1', userId: 'usr_999', payment: { id: 'pay_1', status: 'PENDING' },
+        id: 'ord_1',
+        userId: 'usr_999',
+        payment: { id: 'pay_1', status: 'PENDING' },
       } as any);
       await expect(PaymentService.cancelPayment('usr_1', 'ord_1')).rejects.toThrow(NotFoundError);
     });

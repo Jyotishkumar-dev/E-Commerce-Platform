@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  addCartItemSchema,
-  updateCartItemSchema,
-} from '../validators/cart.validator.js';
+import { addCartItemSchema, updateCartItemSchema } from '../validators/cart.validator.js';
 
 describe('Cart Validators', () => {
   describe('addCartItemSchema', () => {

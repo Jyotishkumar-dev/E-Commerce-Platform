@@ -31,8 +31,18 @@ export class CategoryService {
     return category;
   }
 
-  static async createCategory(input: { name: string; slug?: string; description?: string; imageUrl?: string }) {
-    const slug = input.slug || input.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  static async createCategory(input: {
+    name: string;
+    slug?: string;
+    description?: string;
+    imageUrl?: string;
+  }) {
+    const slug =
+      input.slug ||
+      input.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
 
     const existing = await prisma.category.findUnique({ where: { slug } });
     if (existing) {

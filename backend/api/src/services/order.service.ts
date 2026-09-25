@@ -124,7 +124,8 @@ export class OrderService {
           taxCents,
           totalCents,
           couponId,
-          shippingAddressSnapshot: (shippingAddressSnapshot as unknown as Prisma.InputJsonObject) ?? undefined,
+          shippingAddressSnapshot:
+            (shippingAddressSnapshot as unknown as Prisma.InputJsonObject) ?? undefined,
           items: {
             create: cart.items.map((item) => ({
               productId: item.productId,
@@ -198,9 +199,7 @@ export class OrderService {
         });
 
         if (!product || product.stock < item.quantity) {
-          throw new ConflictError(
-            `Insufficient stock for product ${item.productTitle}.`,
-          );
+          throw new ConflictError(`Insufficient stock for product ${item.productTitle}.`);
         }
 
         await tx.product.update({

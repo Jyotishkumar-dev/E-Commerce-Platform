@@ -4,7 +4,9 @@ import { env } from '../config/env.js';
 const CLOUDINARY_FOLDER = 'shopvibe/products';
 
 if (!env.CLOUDINARY_CLOUD_NAME || !env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET) {
-  throw new Error('Cloudinary configuration missing. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.');
+  throw new Error(
+    'Cloudinary configuration missing. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET environment variables.',
+  );
 }
 
 cloudinary.config({
@@ -34,10 +36,11 @@ export function getProductFolder(productId: string): string {
 export async function uploadImage(
   fileBuffer: Buffer,
   productId: string,
-  options?: { publicId?: string; folder?: string }
+  options?: { publicId?: string; folder?: string },
 ): Promise<CloudinaryUploadResult> {
   const folder = options?.folder ?? getProductFolder(productId);
-  const publicId = options?.publicId ?? `img_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const publicId =
+    options?.publicId ?? `img_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
@@ -47,9 +50,7 @@ export async function uploadImage(
         resource_type: 'image',
         overwrite: true,
         invalidate: true,
-        transformation: [
-          { quality: 'auto:good', fetch_format: 'auto' },
-        ],
+        transformation: [{ quality: 'auto:good', fetch_format: 'auto' }],
       },
       (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
         if (error || !result) {
@@ -64,7 +65,7 @@ export async function uploadImage(
           format: result.format ?? '',
           bytes: result.bytes ?? 0,
         });
-      }
+      },
     );
     uploadStream.end(fileBuffer);
   });
@@ -106,7 +107,10 @@ export async function deleteImagesByPrefix(prefix: string): Promise<number> {
   return deletedCount;
 }
 
-export function generateImageUrl(publicId: string, options?: { width?: number; height?: number; quality?: string; format?: string }): string {
+export function generateImageUrl(
+  publicId: string,
+  options?: { width?: number; height?: number; quality?: string; format?: string },
+): string {
   const transformations: Record<string, string | number>[] = [];
 
   if (options?.width) transformations.push({ width: options.width, crop: 'limit' });

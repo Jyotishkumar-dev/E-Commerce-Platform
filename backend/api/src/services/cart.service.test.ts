@@ -93,7 +93,13 @@ describe('CartService', () => {
         {
           id: 'item_1',
           quantity: 3,
-          product: { id: 'prod_1', title: 'AeroFit Headphones', priceCents: 1299900, stock: 10, isActive: true },
+          product: {
+            id: 'prod_1',
+            title: 'AeroFit Headphones',
+            priceCents: 1299900,
+            stock: 10,
+            isActive: true,
+          },
         },
       ],
     } as any);
@@ -149,7 +155,10 @@ describe('CartService', () => {
   });
 
   it('updates item quantity and deletes item when quantity is reduced to 0', async () => {
-    vi.mocked(prisma.cart.findUnique).mockResolvedValueOnce({ id: 'cart_1', userId: 'usr_1' } as any);
+    vi.mocked(prisma.cart.findUnique).mockResolvedValueOnce({
+      id: 'cart_1',
+      userId: 'usr_1',
+    } as any);
     vi.mocked(prisma.cartItem.findFirst).mockResolvedValueOnce({
       id: 'item_1',
       cartId: 'cart_1',
@@ -170,7 +179,10 @@ describe('CartService', () => {
   });
 
   it('rejects quantity update exceeding available stock', async () => {
-    vi.mocked(prisma.cart.findUnique).mockResolvedValueOnce({ id: 'cart_1', userId: 'usr_1' } as any);
+    vi.mocked(prisma.cart.findUnique).mockResolvedValueOnce({
+      id: 'cart_1',
+      userId: 'usr_1',
+    } as any);
     vi.mocked(prisma.cartItem.findFirst).mockResolvedValueOnce({
       id: 'item_1',
       cartId: 'cart_1',
@@ -183,7 +195,10 @@ describe('CartService', () => {
   });
 
   it('removes item from user cart', async () => {
-    vi.mocked(prisma.cart.findUnique).mockResolvedValueOnce({ id: 'cart_1', userId: 'usr_1' } as any);
+    vi.mocked(prisma.cart.findUnique).mockResolvedValueOnce({
+      id: 'cart_1',
+      userId: 'usr_1',
+    } as any);
     vi.mocked(prisma.cartItem.deleteMany).mockResolvedValueOnce({ count: 1 } as any);
     vi.mocked(prisma.cart.findUnique).mockResolvedValueOnce({
       id: 'cart_1',
@@ -202,7 +217,10 @@ describe('CartService', () => {
   });
 
   it('atomically moves cart item to wishlist using Prisma transaction', async () => {
-    vi.mocked(prisma.cart.findUnique).mockResolvedValueOnce({ id: 'cart_1', userId: 'usr_1' } as any);
+    vi.mocked(prisma.cart.findUnique).mockResolvedValueOnce({
+      id: 'cart_1',
+      userId: 'usr_1',
+    } as any);
     vi.mocked(prisma.cartItem.findFirst).mockResolvedValueOnce({
       id: 'item_1',
       cartId: 'cart_1',
@@ -229,4 +247,3 @@ describe('CartService', () => {
     });
   });
 });
-

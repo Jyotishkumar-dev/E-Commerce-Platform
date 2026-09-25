@@ -86,13 +86,16 @@ export class ReviewService {
     };
   }
 
-  static async createReview(userId: string, input: {
-    productId: string;
-    rating: number;
-    title?: string;
-    body: string;
-    orderId?: string;
-  }) {
+  static async createReview(
+    userId: string,
+    input: {
+      productId: string;
+      rating: number;
+      title?: string;
+      body: string;
+      orderId?: string;
+    },
+  ) {
     const product = await prisma.product.findUnique({
       where: { id: input.productId },
       select: { id: true, isActive: true },
@@ -108,7 +111,9 @@ export class ReviewService {
     });
 
     if (existingReview) {
-      throw new ConflictError('You have already reviewed this product. You can edit your existing review.');
+      throw new ConflictError(
+        'You have already reviewed this product. You can edit your existing review.',
+      );
     }
 
     // Verify purchase if orderId provided
@@ -156,11 +161,15 @@ export class ReviewService {
     return review;
   }
 
-  static async updateReview(userId: string, reviewId: string, input: {
-    rating?: number;
-    title?: string;
-    body?: string;
-  }) {
+  static async updateReview(
+    userId: string,
+    reviewId: string,
+    input: {
+      rating?: number;
+      title?: string;
+      body?: string;
+    },
+  ) {
     const review = await prisma.productReview.findUnique({
       where: { id: reviewId },
     });

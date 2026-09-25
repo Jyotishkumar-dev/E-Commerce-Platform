@@ -43,7 +43,11 @@ export class AddressService {
     });
   }
 
-  static async updateAddress(userId: string, addressId: string, input: Partial<CreateAddressInput>) {
+  static async updateAddress(
+    userId: string,
+    addressId: string,
+    input: Partial<CreateAddressInput>,
+  ) {
     const existing = await prisma.address.findFirst({
       where: { id: addressId, userId },
     });
@@ -119,4 +123,3 @@ export class AddressService {
     return { message: 'Address deleted successfully' };
   }
 }
-

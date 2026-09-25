@@ -95,7 +95,9 @@ export class AdminService {
       prisma.user.count({ where: { role: 'CUSTOMER' } }),
       prisma.product.count({ where: { isActive: true } }),
       prisma.product.count({ where: { isActive: false } }),
-      prisma.product.count({ where: { isActive: true, stock: { gt: 0, lte: LOW_STOCK_THRESHOLD } } }),
+      prisma.product.count({
+        where: { isActive: true, stock: { gt: 0, lte: LOW_STOCK_THRESHOLD } },
+      }),
       prisma.product.count({ where: { isActive: true, stock: { lte: 0 } } }),
       prisma.order.count(),
       prisma.order.count({ where: { status: 'PENDING' } }),
@@ -179,7 +181,8 @@ export class AdminService {
 
     if (filters.dateFrom || filters.dateTo) {
       where.createdAt = {};
-      if (filters.dateFrom) (where.createdAt as Record<string, Date>).gte = new Date(filters.dateFrom);
+      if (filters.dateFrom)
+        (where.createdAt as Record<string, Date>).gte = new Date(filters.dateFrom);
       if (filters.dateTo) (where.createdAt as Record<string, Date>).lte = new Date(filters.dateTo);
     }
 
@@ -189,7 +192,15 @@ export class AdminService {
         where,
         include: {
           user: { select: { id: true, email: true, name: true } },
-          items: { select: { id: true, productTitle: true, quantity: true, unitPriceCents: true, subtotalCents: true } },
+          items: {
+            select: {
+              id: true,
+              productTitle: true,
+              quantity: true,
+              unitPriceCents: true,
+              subtotalCents: true,
+            },
+          },
           payment: true,
         },
         orderBy: { createdAt: 'desc' },
@@ -249,7 +260,7 @@ export class AdminService {
       const allowed = validTransitions[existing.status] ?? [];
       if (!allowed.includes(status)) {
         throw new BadRequestError(
-          `Invalid status transition from ${existing.status} to ${status}. Allowed: ${allowed.join(', ') || 'none'}`
+          `Invalid status transition from ${existing.status} to ${status}. Allowed: ${allowed.join(', ') || 'none'}`,
         );
       }
     }
@@ -258,7 +269,7 @@ export class AdminService {
     if (status === 'CANCELLED' && existing.status !== 'CANCELLED') {
       await prisma.$transaction(async (tx) => {
         await tx.order.update({ where: { id: orderId }, data: { status } });
-        
+
         // Restore inventory if order was confirmed/processing/shipped
         if (['CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'].includes(existing.status)) {
           const orderWithItems = await tx.order.findUnique({
@@ -321,7 +332,10 @@ export class AdminService {
         where,
         include: {
           categoryRef: { select: { id: true, name: true, slug: true } },
-          images: { select: { id: true, url: true, altText: true, sortOrder: true }, orderBy: { sortOrder: 'asc' } },
+          images: {
+            select: { id: true, url: true, altText: true, sortOrder: true },
+            orderBy: { sortOrder: 'asc' },
+          },
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -344,7 +358,16 @@ export class AdminService {
     });
   }
 
-  static async updateCategory(categoryId: string, input: { name?: string; slug?: string; description?: string; imageUrl?: string; isActive?: boolean }) {
+  static async updateCategory(
+    categoryId: string,
+    input: {
+      name?: string;
+      slug?: string;
+      description?: string;
+      imageUrl?: string;
+      isActive?: boolean;
+    },
+  ) {
     const existing = await prisma.category.findUnique({ where: { id: categoryId } });
     if (!existing) {
       throw new NotFoundError('Category not found.');
@@ -371,7 +394,9 @@ export class AdminService {
 
     const productCount = await prisma.product.count({ where: { categoryId } });
     if (productCount > 0) {
-      throw new ConflictError(`Cannot delete category with ${productCount} associated products. Deactivate or reassign them first.`);
+      throw new ConflictError(
+        `Cannot delete category with ${productCount} associated products. Deactivate or reassign them first.`,
+      );
     }
 
     return prisma.category.delete({ where: { id: categoryId } });
@@ -419,7 +444,12 @@ export class AdminService {
       _count: true,
     });
 
-    const statsMap = new Map(orderStats.map((s) => [s.userId, { totalSpent: s._sum.totalCents ?? 0, orderCount: s._count }]));
+    const statsMap = new Map(
+      orderStats.map((s) => [
+        s.userId,
+        { totalSpent: s._sum.totalCents ?? 0, orderCount: s._count },
+      ]),
+    );
 
     const customersWithStats = customers.map((c) => ({
       ...c,
@@ -505,30 +535,39 @@ export class AdminService {
     });
   }
 
-  static async updateCoupon(couponId: string, input: {
-    code?: string;
-    type?: 'PERCENTAGE' | 'FIXED';
-    value?: number;
-    minimumOrderValueCents?: number;
-    maximumDiscountCents?: number;
-    usageLimit?: number;
-    startsAt?: string;
-    expiresAt?: string;
-    isActive?: boolean;
-  }) {
+  static async updateCoupon(
+    couponId: string,
+    input: {
+      code?: string;
+      type?: 'PERCENTAGE' | 'FIXED';
+      value?: number;
+      minimumOrderValueCents?: number;
+      maximumDiscountCents?: number;
+      usageLimit?: number;
+      startsAt?: string;
+      expiresAt?: string;
+      isActive?: boolean;
+    },
+  ) {
     const existing = await prisma.coupon.findUnique({ where: { id: couponId } });
     if (!existing) {
       throw new NotFoundError('Coupon not found.');
     }
 
     if (input.code && input.code.toUpperCase().trim() !== existing.code) {
-      const codeExists = await prisma.coupon.findUnique({ where: { code: input.code.toUpperCase().trim() } });
+      const codeExists = await prisma.coupon.findUnique({
+        where: { code: input.code.toUpperCase().trim() },
+      });
       if (codeExists) {
         throw new ConflictError('A coupon with this code already exists.');
       }
     }
 
-    if (input.type === 'PERCENTAGE' && input.value !== undefined && (input.value <= 0 || input.value > 100)) {
+    if (
+      input.type === 'PERCENTAGE' &&
+      input.value !== undefined &&
+      (input.value <= 0 || input.value > 100)
+    ) {
       throw new BadRequestError('Percentage value must be between 1 and 100.');
     }
     if (input.type === 'FIXED' && input.value !== undefined && input.value <= 0) {
@@ -579,7 +618,12 @@ export class AdminService {
       }
     }
 
-    const slug = input.slug || input.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const slug =
+      input.slug ||
+      input.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
 
     return prisma.product.create({
       data: {
@@ -599,27 +643,32 @@ export class AdminService {
     });
   }
 
-  static async updateProduct(productId: string, input: {
-    title?: string;
-    slug?: string;
-    description?: string;
-    priceCents?: number;
-    compareAtPriceCents?: number;
-    category?: string;
-    categoryId?: string | null;
-    sku?: string;
-    brand?: string;
-    imageUrl?: string | null;
-    stock?: number;
-    isActive?: boolean;
-  }) {
+  static async updateProduct(
+    productId: string,
+    input: {
+      title?: string;
+      slug?: string;
+      description?: string;
+      priceCents?: number;
+      compareAtPriceCents?: number;
+      category?: string;
+      categoryId?: string | null;
+      sku?: string;
+      brand?: string;
+      imageUrl?: string | null;
+      stock?: number;
+      isActive?: boolean;
+    },
+  ) {
     const existing = await prisma.product.findUnique({ where: { id: productId } });
     if (!existing) {
       throw new NotFoundError('Product not found.');
     }
 
     if (input.sku && input.sku.toUpperCase() !== existing.sku) {
-      const skuExists = await prisma.product.findUnique({ where: { sku: input.sku.toUpperCase() } });
+      const skuExists = await prisma.product.findUnique({
+        where: { sku: input.sku.toUpperCase() },
+      });
       if (skuExists) {
         throw new ConflictError('A product with this SKU already exists.');
       }
@@ -658,11 +707,13 @@ export class AdminService {
     });
   }
 
-  static async getAnalytics(filters: {
-    dateFrom?: string;
-    dateTo?: string;
-    period?: string;
-  } = {}) {
+  static async getAnalytics(
+    filters: {
+      dateFrom?: string;
+      dateTo?: string;
+      period?: string;
+    } = {},
+  ) {
     let dateWhere: Record<string, Date> = {};
     const now = new Date();
 
@@ -679,28 +730,29 @@ export class AdminService {
 
     const where = dateWhere.gte || dateWhere.lte ? { createdAt: dateWhere } : {};
 
-    const [revenueData, orderStatusData, topProducts, totalOrders, totalRevenue] = await Promise.all([
-      prisma.order.groupBy({
-        by: ['createdAt'],
-        where: { ...where, payment: { status: 'SUCCESS' } },
-        _sum: { totalCents: true },
-        orderBy: { createdAt: 'asc' },
-      }),
-      prisma.order.groupBy({
-        by: ['status'],
-        where,
-        _count: { id: true },
-      }),
-      prisma.orderItem.groupBy({
-        by: ['productId', 'productTitle'],
-        where: { order: where },
-        _sum: { quantity: true, subtotalCents: true },
-        orderBy: { _sum: { quantity: 'desc' } },
-        take: 10,
-      }),
-      prisma.order.count({ where }),
-      prisma.order.aggregate({ where, _sum: { totalCents: true } }),
-    ]);
+    const [revenueData, orderStatusData, topProducts, totalOrders, totalRevenue] =
+      await Promise.all([
+        prisma.order.groupBy({
+          by: ['createdAt'],
+          where: { ...where, payment: { status: 'SUCCESS' } },
+          _sum: { totalCents: true },
+          orderBy: { createdAt: 'asc' },
+        }),
+        prisma.order.groupBy({
+          by: ['status'],
+          where,
+          _count: { id: true },
+        }),
+        prisma.orderItem.groupBy({
+          by: ['productId', 'productTitle'],
+          where: { order: where },
+          _sum: { quantity: true, subtotalCents: true },
+          orderBy: { _sum: { quantity: 'desc' } },
+          take: 10,
+        }),
+        prisma.order.count({ where }),
+        prisma.order.aggregate({ where, _sum: { totalCents: true } }),
+      ]);
 
     const revenueTrend = revenueData.map((r) => ({
       date: r.createdAt.toISOString().split('T')[0],
@@ -724,7 +776,8 @@ export class AdminService {
       topProducts: topProductsData,
       totalOrders,
       totalRevenue: totalRevenue._sum.totalCents ?? 0,
-      averageOrderValue: totalOrders > 0 ? Math.round((totalRevenue._sum.totalCents ?? 0) / totalOrders) : 0,
+      averageOrderValue:
+        totalOrders > 0 ? Math.round((totalRevenue._sum.totalCents ?? 0) / totalOrders) : 0,
     };
   }
 
@@ -744,8 +797,13 @@ export class AdminService {
     if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
       throw new BadRequestError('Coupon usage limit reached.');
     }
-    if (input.minimumOrderValueCents !== undefined && input.minimumOrderValueCents < coupon.minimumOrderValueCents) {
-      throw new BadRequestError(`Minimum order value of ${coupon.minimumOrderValueCents} cents required.`);
+    if (
+      input.minimumOrderValueCents !== undefined &&
+      input.minimumOrderValueCents < coupon.minimumOrderValueCents
+    ) {
+      throw new BadRequestError(
+        `Minimum order value of ${coupon.minimumOrderValueCents} cents required.`,
+      );
     }
 
     return {
@@ -811,7 +869,7 @@ export class AdminService {
   static async uploadProductImage(
     productId: string,
     fileBuffer: Buffer,
-    options?: { altText?: string; isPrimary?: boolean }
+    options?: { altText?: string; isPrimary?: boolean },
   ) {
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -937,7 +995,11 @@ export class AdminService {
     });
   }
 
-  static async updateImage(productId: string, imageId: string, input: { altText?: string; sortOrder?: number }) {
+  static async updateImage(
+    productId: string,
+    imageId: string,
+    input: { altText?: string; sortOrder?: number },
+  ) {
     const image = await prisma.productImage.findFirst({
       where: { id: imageId, productId },
     });

@@ -23,4 +23,3 @@ router.post('/items/:productId/move-to-cart', WishlistController.moveToCart);
 router.post('/:productId/move-to-cart', WishlistController.moveToCart);
 
 export { router as wishlistRouter };
-

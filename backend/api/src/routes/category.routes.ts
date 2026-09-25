@@ -8,6 +8,12 @@ const router = Router();
 
 router.get('/', CategoryController.getCategories);
 router.get('/:slug', CategoryController.getCategory);
-router.post('/', authenticate, allowRoles('ADMIN'), validateBody(createCategorySchema), CategoryController.createCategory);
+router.post(
+  '/',
+  authenticate,
+  allowRoles('ADMIN'),
+  validateBody(createCategorySchema),
+  CategoryController.createCategory,
+);
 
 export { router as categoryRouter };

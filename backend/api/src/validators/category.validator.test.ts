@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  createCategorySchema,
-  updateCategorySchema,
-} from '../validators/category.validator.js';
+import { createCategorySchema, updateCategorySchema } from '../validators/category.validator.js';
 
 describe('Category Validators', () => {
   describe('createCategorySchema', () => {

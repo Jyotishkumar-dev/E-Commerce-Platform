@@ -179,7 +179,9 @@ describe('AddressService', () => {
     it('throws NotFoundError if address does not belong to user', async () => {
       vi.mocked(prisma.address.findFirst).mockResolvedValueOnce(null);
 
-      await expect(AddressService.setDefaultAddress('usr_1', 'addr_999')).rejects.toThrow(NotFoundError);
+      await expect(AddressService.setDefaultAddress('usr_1', 'addr_999')).rejects.toThrow(
+        NotFoundError,
+      );
     });
 
     it('atomically resets existing defaults and sets new default', async () => {
@@ -209,7 +211,9 @@ describe('AddressService', () => {
     it('throws NotFoundError if address does not belong to user', async () => {
       vi.mocked(prisma.address.findFirst).mockResolvedValueOnce(null);
 
-      await expect(AddressService.deleteAddress('usr_1', 'addr_999')).rejects.toThrow(NotFoundError);
+      await expect(AddressService.deleteAddress('usr_1', 'addr_999')).rejects.toThrow(
+        NotFoundError,
+      );
     });
 
     it('promotes newest remaining address to default when deleting default address', async () => {
@@ -217,7 +221,10 @@ describe('AddressService', () => {
         .mockResolvedValueOnce({ id: 'addr_1', userId: 'usr_1', isDefault: true } as any)
         .mockResolvedValueOnce({ id: 'addr_2', userId: 'usr_1', isDefault: false } as any);
       vi.mocked(prisma.address.delete).mockResolvedValueOnce({} as any);
-      vi.mocked(prisma.address.update).mockResolvedValueOnce({ id: 'addr_2', isDefault: true } as any);
+      vi.mocked(prisma.address.update).mockResolvedValueOnce({
+        id: 'addr_2',
+        isDefault: true,
+      } as any);
 
       const result = await AddressService.deleteAddress('usr_1', 'addr_1');
 
@@ -259,9 +266,9 @@ describe('AddressService', () => {
     it('never allows access to another user addresses in updateAddress', async () => {
       vi.mocked(prisma.address.findFirst).mockResolvedValueOnce(null);
 
-      await expect(AddressService.updateAddress('usr_1', 'addr_2', { city: 'Bangalore' })).rejects.toThrow(
-        NotFoundError,
-      );
+      await expect(
+        AddressService.updateAddress('usr_1', 'addr_2', { city: 'Bangalore' }),
+      ).rejects.toThrow(NotFoundError);
     });
 
     it('never allows access to another user addresses in deleteAddress', async () => {

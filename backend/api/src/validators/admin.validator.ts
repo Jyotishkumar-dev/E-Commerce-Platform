@@ -2,7 +2,9 @@ import { z } from 'zod';
 
 export const adminOrderFiltersSchema = z.object({
   search: z.string().trim().optional(),
-  status: z.enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']).optional(),
+  status: z
+    .enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'])
+    .optional(),
   paymentStatus: z.enum(['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED']).optional(),
   paymentProvider: z.enum(['RAZORPAY', 'COD', 'STRIPE']).optional(),
   dateFrom: z.string().datetime().optional(),

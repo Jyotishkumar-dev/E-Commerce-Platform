@@ -1,14 +1,16 @@
-export function createTestProduct(overrides: Partial<{
-  id: string;
-  title: string;
-  priceCents: number;
-  stock: number;
-  category: string;
-  imageUrl: string | null;
-  description: string | null;
-  isActive: boolean;
-  slug: string;
-}> = {}) {
+export function createTestProduct(
+  overrides: Partial<{
+    id: string;
+    title: string;
+    priceCents: number;
+    stock: number;
+    category: string;
+    imageUrl: string | null;
+    description: string | null;
+    isActive: boolean;
+    slug: string;
+  }> = {},
+) {
   return {
     id: 'prod_' + Math.random().toString(36).slice(2, 8),
     title: 'Test Product',
@@ -23,12 +25,14 @@ export function createTestProduct(overrides: Partial<{
   };
 }
 
-export function createTestUser(overrides: Partial<{
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-}> = {}) {
+export function createTestUser(
+  overrides: Partial<{
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  }> = {},
+) {
   return {
     id: 'usr_' + Math.random().toString(36).slice(2, 8),
     email: 'test@shopvibe.store',
@@ -38,13 +42,20 @@ export function createTestUser(overrides: Partial<{
   };
 }
 
-export function createTestCart(overrides: Partial<{
-  id: string;
-  userId: string;
-  items: Array<{ productId: string; quantity: number; unitPriceCents: number; subtotalCents: number }>;
-  subtotalCents: number;
-  itemCount: number;
-}> = {}) {
+export function createTestCart(
+  overrides: Partial<{
+    id: string;
+    userId: string;
+    items: Array<{
+      productId: string;
+      quantity: number;
+      unitPriceCents: number;
+      subtotalCents: number;
+    }>;
+    subtotalCents: number;
+    itemCount: number;
+  }> = {},
+) {
   return {
     id: 'cart_' + Math.random().toString(36).slice(2, 8),
     userId: 'usr_1',
@@ -55,14 +66,22 @@ export function createTestCart(overrides: Partial<{
   };
 }
 
-export function createTestOrder(overrides: Partial<{
-  id: string;
-  userId: string;
-  status: string;
-  totalCents: number;
-  subtotalCents: number;
-  items: Array<{ productId: string; productTitle: string; quantity: number; unitPriceCents: number; subtotalCents: number }>;
-}> = {}) {
+export function createTestOrder(
+  overrides: Partial<{
+    id: string;
+    userId: string;
+    status: string;
+    totalCents: number;
+    subtotalCents: number;
+    items: Array<{
+      productId: string;
+      productTitle: string;
+      quantity: number;
+      unitPriceCents: number;
+      subtotalCents: number;
+    }>;
+  }> = {},
+) {
   return {
     id: 'ord_' + Math.random().toString(36).slice(2, 8),
     userId: 'usr_1',
@@ -74,16 +93,18 @@ export function createTestOrder(overrides: Partial<{
   };
 }
 
-export function createTestReview(overrides: Partial<{
-  id: string;
-  productId: string;
-  userId: string;
-  rating: number;
-  title: string | null;
-  body: string;
-  isVerifiedPurchase: boolean;
-  status: string;
-}> = {}) {
+export function createTestReview(
+  overrides: Partial<{
+    id: string;
+    productId: string;
+    userId: string;
+    rating: number;
+    title: string | null;
+    body: string;
+    isVerifiedPurchase: boolean;
+    status: string;
+  }> = {},
+) {
   return {
     id: 'rev_' + Math.random().toString(36).slice(2, 8),
     productId: 'prod_1',

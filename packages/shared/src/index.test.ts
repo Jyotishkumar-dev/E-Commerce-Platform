@@ -150,13 +150,25 @@ describe('Shared Schemas', () => {
 
   describe('OrderStatusEnum', () => {
     it('has correct values', () => {
-      expect(Object.values(OrderStatusEnum.Values)).toEqual(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']);
+      expect(Object.values(OrderStatusEnum.Values)).toEqual([
+        'PENDING',
+        'CONFIRMED',
+        'PROCESSING',
+        'SHIPPED',
+        'DELIVERED',
+        'CANCELLED',
+      ]);
     });
   });
 
   describe('PaymentStatusEnum', () => {
     it('has correct values', () => {
-      expect(Object.values(PaymentStatusEnum.Values)).toEqual(['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED']);
+      expect(Object.values(PaymentStatusEnum.Values)).toEqual([
+        'PENDING',
+        'SUCCESS',
+        'FAILED',
+        'REFUNDED',
+      ]);
     });
   });
 

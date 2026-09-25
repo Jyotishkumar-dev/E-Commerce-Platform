@@ -17,7 +17,11 @@ export const productQuerySchema = z.object({
 
 export const createProductSchema = z.object({
   title: z.string().trim().min(2, 'Title must be at least 2 characters.').max(200),
-  slug: z.string().trim().regex(/^[a-z0-9-]+$/, 'Slug must only contain lowercase alphanumeric characters and hyphens.').optional(),
+  slug: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9-]+$/, 'Slug must only contain lowercase alphanumeric characters and hyphens.')
+    .optional(),
   description: z.string().trim().max(5000).optional(),
   priceCents: z.coerce.number().int().positive('Price must be greater than zero.'),
   compareAtPriceCents: z.coerce.number().int().positive().optional(),

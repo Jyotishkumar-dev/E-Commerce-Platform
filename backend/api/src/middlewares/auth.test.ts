@@ -35,7 +35,9 @@ describe('Auth Middleware', () => {
   });
 
   it('returns 401 when JWT token is invalid or expired', () => {
-    const req = { header: vi.fn().mockReturnValue('Bearer invalid.jwt.token') } as unknown as Request;
+    const req = {
+      header: vi.fn().mockReturnValue('Bearer invalid.jwt.token'),
+    } as unknown as Request;
     const res = mockResponse();
     const next = vi.fn() as NextFunction;
 

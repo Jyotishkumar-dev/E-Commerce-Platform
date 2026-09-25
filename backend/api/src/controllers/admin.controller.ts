@@ -206,7 +206,12 @@ export class AdminController {
       const couponId = getParam(req, 'couponId');
       const { isActive } = req.body;
       const coupon = await AdminService.toggleCouponActive(couponId, isActive);
-      return ok(res, req, { coupon }, `Coupon ${isActive ? 'activated' : 'deactivated'} successfully`);
+      return ok(
+        res,
+        req,
+        { coupon },
+        `Coupon ${isActive ? 'activated' : 'deactivated'} successfully`,
+      );
     } catch (error) {
       next(error);
     }

@@ -107,12 +107,21 @@ export type Cart = z.infer<typeof cartSchema>;
 
 export const addCartItemSchema = z.object({
   productId: z.string().min(1, 'Product ID is required.'),
-  quantity: z.coerce.number().int().min(1, 'Quantity must be at least 1.').max(20, 'Maximum 20 units per item.').default(1),
+  quantity: z.coerce
+    .number()
+    .int()
+    .min(1, 'Quantity must be at least 1.')
+    .max(20, 'Maximum 20 units per item.')
+    .default(1),
 });
 export type AddCartItemRequest = z.infer<typeof addCartItemSchema>;
 
 export const updateCartItemSchema = z.object({
-  quantity: z.coerce.number().int().min(0, 'Quantity cannot be negative.').max(20, 'Maximum 20 units per item.'),
+  quantity: z.coerce
+    .number()
+    .int()
+    .min(0, 'Quantity cannot be negative.')
+    .max(20, 'Maximum 20 units per item.'),
 });
 export type UpdateCartItemRequest = z.infer<typeof updateCartItemSchema>;
 
@@ -129,7 +138,6 @@ export const addToWishlistSchema = z.object({
   productId: z.string().min(1, 'Product ID is required.'),
 });
 export type AddToWishlistRequest = z.infer<typeof addToWishlistSchema>;
-
 
 // ==========================================
 // Address Schemas & Types
@@ -154,12 +162,22 @@ export type Address = z.infer<typeof addressSchema>;
 
 export const createAddressSchema = z.object({
   fullName: z.string().trim().min(2, 'Full name is required.').max(100),
-  phone: z.string().trim().regex(/^[+]?[0-9]{10,14}$/, 'Please enter a valid 10-digit mobile number.'),
-  addressLine1: z.string().trim().min(5, 'Flat / House No., Building, Street is required.').max(200),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[+]?[0-9]{10,14}$/, 'Please enter a valid 10-digit mobile number.'),
+  addressLine1: z
+    .string()
+    .trim()
+    .min(5, 'Flat / House No., Building, Street is required.')
+    .max(200),
   addressLine2: z.string().trim().max(200).optional(),
   city: z.string().trim().min(2, 'City is required.').max(100),
   state: z.string().trim().min(2, 'State is required.').max(100),
-  postalCode: z.string().trim().regex(/^[1-9][0-9]{5}$/, 'Please enter a valid 6-digit PIN code.'),
+  postalCode: z
+    .string()
+    .trim()
+    .regex(/^[1-9][0-9]{5}$/, 'Please enter a valid 6-digit PIN code.'),
   country: z.string().trim().default('India'),
   isDefault: z.boolean().default(false),
 });
@@ -172,7 +190,14 @@ export type UpdateAddressRequest = z.infer<typeof updateAddressSchema>;
 // Order Schemas & Types
 // ==========================================
 
-export const OrderStatusEnum = z.enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED']);
+export const OrderStatusEnum = z.enum([
+  'PENDING',
+  'CONFIRMED',
+  'PROCESSING',
+  'SHIPPED',
+  'DELIVERED',
+  'CANCELLED',
+]);
 export type OrderStatus = z.infer<typeof OrderStatusEnum>;
 
 export const PaymentStatusEnum = z.enum(['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED']);
@@ -207,7 +232,6 @@ export const orderSchema = z.object({
   items: z.array(orderItemSchema),
 });
 export type Order = z.infer<typeof orderSchema>;
-
 
 export const ReviewStatusEnum = z.enum(['PUBLISHED', 'PENDING', 'HIDDEN']);
 export type ReviewStatus = z.infer<typeof ReviewStatusEnum>;

@@ -8,7 +8,11 @@ const router = Router();
 
 router.use(authenticate);
 
-router.post('/create-order', validateBody(createPaymentOrderSchema), PaymentController.createPaymentOrder);
+router.post(
+  '/create-order',
+  validateBody(createPaymentOrderSchema),
+  PaymentController.createPaymentOrder,
+);
 router.post('/verify', validateBody(verifyPaymentSchema), PaymentController.verifyPayment);
 router.post('/retry/:orderId', PaymentController.retryPayment);
 router.post('/cancel/:orderId', PaymentController.cancelPayment);

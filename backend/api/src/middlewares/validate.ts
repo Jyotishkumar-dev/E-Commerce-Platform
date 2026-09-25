@@ -10,7 +10,12 @@ export function validateBody(schema: AnyZodObject) {
         field: err.path.join('.'),
         message: err.message,
       }));
-      return next(new ValidationError(formattedErrors[0]?.message ?? 'Invalid request body.', formattedErrors));
+      return next(
+        new ValidationError(
+          formattedErrors[0]?.message ?? 'Invalid request body.',
+          formattedErrors,
+        ),
+      );
     }
     req.body = result.data;
     next();
@@ -25,7 +30,12 @@ export function validateQuery(schema: AnyZodObject) {
         field: err.path.join('.'),
         message: err.message,
       }));
-      return next(new ValidationError(formattedErrors[0]?.message ?? 'Invalid query parameters.', formattedErrors));
+      return next(
+        new ValidationError(
+          formattedErrors[0]?.message ?? 'Invalid query parameters.',
+          formattedErrors,
+        ),
+      );
     }
     req.query = result.data;
     next();
@@ -40,7 +50,12 @@ export function validateParams(schema: AnyZodObject) {
         field: err.path.join('.'),
         message: err.message,
       }));
-      return next(new ValidationError(formattedErrors[0]?.message ?? 'Invalid route parameters.', formattedErrors));
+      return next(
+        new ValidationError(
+          formattedErrors[0]?.message ?? 'Invalid route parameters.',
+          formattedErrors,
+        ),
+      );
     }
     req.params = result.data;
     next();

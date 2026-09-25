@@ -30,7 +30,10 @@ export const defaultProductSelect = {
   createdAt: true,
   seller: { select: { name: true } },
   categoryRef: { select: { id: true, name: true, slug: true } },
-  images: { select: { id: true, url: true, altText: true, sortOrder: true }, orderBy: { sortOrder: 'asc' as const } },
+  images: {
+    select: { id: true, url: true, altText: true, sortOrder: true },
+    orderBy: { sortOrder: 'asc' as const },
+  },
 } as const;
 
 export class ProductService {
@@ -143,7 +146,12 @@ export class ProductService {
   }
 
   static async createProduct(sellerId: string, input: Prisma.ProductUncheckedCreateInput) {
-    const slug = input.slug || input.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const slug =
+      input.slug ||
+      input.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
 
     const existingSlug = await prisma.product.findUnique({ where: { slug } });
     if (existingSlug) {

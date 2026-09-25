@@ -31,7 +31,9 @@ describe('WishlistService', () => {
   it('throws NotFoundError if product does not exist or is inactive when adding to wishlist', async () => {
     vi.mocked(prisma.product.findFirst).mockResolvedValueOnce(null);
 
-    await expect(WishlistService.addToWishlist('usr_1', 'nonexistent')).rejects.toThrow(NotFoundError);
+    await expect(WishlistService.addToWishlist('usr_1', 'nonexistent')).rejects.toThrow(
+      NotFoundError,
+    );
   });
 
   it('adds product to wishlist using upsert to prevent duplicates', async () => {

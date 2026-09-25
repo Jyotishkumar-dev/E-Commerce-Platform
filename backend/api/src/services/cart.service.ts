@@ -47,10 +47,7 @@ export class CartService {
 
     // Only active and in-stock items contribute to the authoritative subtotal
     const eligibleItems = enrichedItems.filter((item) => item.isAvailable);
-    const subtotalCents = eligibleItems.reduce(
-      (sum, item) => sum + item.lineTotalCents,
-      0,
-    );
+    const subtotalCents = eligibleItems.reduce((sum, item) => sum + item.lineTotalCents, 0);
 
     const hasUnavailableItems = enrichedItems.some(
       (item) => !item.isAvailable || !item.hasSufficientStock,
@@ -222,4 +219,3 @@ export class CartService {
     return this.getCart(userId);
   }
 }
-

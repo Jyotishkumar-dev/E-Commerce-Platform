@@ -10,7 +10,12 @@ vi.mock('../lib/prisma.js', () => ({
     $transaction: vi.fn((cb) => cb(prisma)),
     user: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn() },
     refreshToken: { create: vi.fn(), findFirst: vi.fn(), delete: vi.fn(), deleteMany: vi.fn() },
-    passwordResetToken: { create: vi.fn(), findFirst: vi.fn(), delete: vi.fn(), deleteMany: vi.fn() },
+    passwordResetToken: {
+      create: vi.fn(),
+      findFirst: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
+    },
   },
 }));
 
@@ -25,7 +30,12 @@ vi.mock('../utils/session.js', () => ({
   createRefreshSession: vi.fn().mockResolvedValue({ id: 'refresh_token', expiresAt: new Date() }),
   endRefreshSession: vi.fn().mockResolvedValue(undefined),
   issueAccessToken: vi.fn().mockReturnValue('access_token'),
-  rotateRefreshSession: vi.fn().mockResolvedValue({ accessToken: 'new_access_token', refreshToken: { id: 'new_refresh_token', expiresAt: new Date() } }),
+  rotateRefreshSession: vi
+    .fn()
+    .mockResolvedValue({
+      accessToken: 'new_access_token',
+      refreshToken: { id: 'new_refresh_token', expiresAt: new Date() },
+    }),
 }));
 
 vi.mock('bcryptjs', () => ({
@@ -48,26 +58,40 @@ describe('AuthService', () => {
   it('registers a new user successfully', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
     vi.mocked(prisma.user.create).mockResolvedValue({
-      id: 'usr_1', email: 'new@shopvibe.store', name: 'New User', role: 'CUSTOMER',
+      id: 'usr_1',
+      email: 'new@shopvibe.store',
+      name: 'New User',
+      role: 'CUSTOMER',
     } as any);
 
-    const result = await AuthService.register({ email: 'new@shopvibe.store', password: 'password123', name: 'New User' }, mockRes);
+    const result = await AuthService.register(
+      { email: 'new@shopvibe.store', password: 'password123', name: 'New User' },
+      mockRes,
+    );
     expect(result).toBeDefined();
     expect(result.user.email).toBe('new@shopvibe.store');
     expect(prisma.user.create).toHaveBeenCalled();
   });
 
   it('throws ConflictError for duplicate email', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({ id: 'usr_1', email: 'existing@shopvibe.store' } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
+      id: 'usr_1',
+      email: 'existing@shopvibe.store',
+    } as any);
 
     await expect(
-      AuthService.register({ email: 'existing@shopvibe.store', password: 'password123' }, mockRes)
+      AuthService.register({ email: 'existing@shopvibe.store', password: 'password123' }, mockRes),
     ).rejects.toThrow(ConflictError);
   });
 
   it('logs in with valid credentials', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
-      id: 'usr_1', email: 'test@shopvibe.store', passwordHash: 'hash', name: 'Test', role: 'CUSTOMER', isActive: true,
+      id: 'usr_1',
+      email: 'test@shopvibe.store',
+      passwordHash: 'hash',
+      name: 'Test',
+      role: 'CUSTOMER',
+      isActive: true,
     } as any);
 
     await AuthService.login({ email: 'test@shopvibe.store', password: 'password123' }, mockRes);
@@ -76,12 +100,17 @@ describe('AuthService', () => {
 
   it('throws UnauthorizedError with invalid password', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValueOnce({
-      id: 'usr_1', email: 'test@shopvibe.store', passwordHash: 'hash', name: 'Test', role: 'CUSTOMER', isActive: true,
+      id: 'usr_1',
+      email: 'test@shopvibe.store',
+      passwordHash: 'hash',
+      name: 'Test',
+      role: 'CUSTOMER',
+      isActive: true,
     } as any);
     vi.mocked(bcrypt.compare).mockResolvedValueOnce(false as any);
 
     await expect(
-      AuthService.login({ email: 'test@shopvibe.store', password: 'wrongpass' }, mockRes)
+      AuthService.login({ email: 'test@shopvibe.store', password: 'wrongpass' }, mockRes),
     ).rejects.toThrow(UnauthorizedError);
   });
 
@@ -89,7 +118,7 @@ describe('AuthService', () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValueOnce(null);
 
     await expect(
-      AuthService.login({ email: 'unknown@shopvibe.store', password: 'password123' }, mockRes)
+      AuthService.login({ email: 'unknown@shopvibe.store', password: 'password123' }, mockRes),
     ).rejects.toThrow(UnauthorizedError);
   });
 });

@@ -2,7 +2,12 @@ import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import type { Response } from 'express';
 import { prisma } from '../lib/prisma.js';
-import { BadRequestError, ConflictError, NotFoundError, UnauthorizedError } from '../utils/errors.js';
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+  UnauthorizedError,
+} from '../utils/errors.js';
 import {
   createRefreshSession,
   endRefreshSession,
@@ -207,7 +212,8 @@ export class AuthService {
     }
 
     return {
-      message: 'If an account exists with this email address, password reset instructions have been generated.',
+      message:
+        'If an account exists with this email address, password reset instructions have been generated.',
     };
   }
 
@@ -242,6 +248,8 @@ export class AuthService {
       }),
     ]);
 
-    return { message: 'Password has been reset successfully. Please sign in with your new password.' };
+    return {
+      message: 'Password has been reset successfully. Please sign in with your new password.',
+    };
   }
 }

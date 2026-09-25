@@ -38,11 +38,13 @@ describe('ProductService', () => {
 
       await ProductService.getProducts({ category: 'Audio', page: 1, limit: 20 });
 
-      expect(prisma.product.findMany).toHaveBeenCalledWith(expect.objectContaining({
-        where: expect.objectContaining({
-          OR: expect.anything(),
+      expect(prisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            OR: expect.anything(),
+          }),
         }),
-      }));
+      );
     });
 
     it('filters by inStock', async () => {
@@ -52,11 +54,13 @@ describe('ProductService', () => {
 
       await ProductService.getProducts({ inStock: true, page: 1, limit: 20 });
 
-      expect(prisma.product.findMany).toHaveBeenCalledWith(expect.objectContaining({
-        where: expect.objectContaining({
-          stock: expect.objectContaining({ gt: 0 }),
+      expect(prisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            stock: expect.objectContaining({ gt: 0 }),
+          }),
         }),
-      }));
+      );
     });
 
     it('searches by keyword', async () => {
@@ -66,11 +70,13 @@ describe('ProductService', () => {
 
       await ProductService.getProducts({ search: 'headphones', page: 1, limit: 20 });
 
-      expect(prisma.product.findMany).toHaveBeenCalledWith(expect.objectContaining({
-        where: expect.objectContaining({
-          AND: expect.anything(),
+      expect(prisma.product.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            AND: expect.anything(),
+          }),
         }),
-      }));
+      );
     });
   });
 });

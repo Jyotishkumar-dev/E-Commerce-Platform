@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  createAddressSchema,
-  updateAddressSchema,
-} from '../validators/address.validator.js';
+import { createAddressSchema, updateAddressSchema } from '../validators/address.validator.js';
 
 describe('Address Validators', () => {
   describe('createAddressSchema', () => {

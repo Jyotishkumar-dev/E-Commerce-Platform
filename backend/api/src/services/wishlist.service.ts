@@ -54,4 +54,3 @@ export class WishlistService {
     return { message: 'Item moved to bag' };
   }
 }
-

@@ -36,7 +36,9 @@ describe('OrderService', () => {
         items: [],
       } as any);
 
-      await expect(OrderService.createOrder('usr_1', { paymentMethod: 'COD' })).rejects.toThrow(BadRequestError);
+      await expect(OrderService.createOrder('usr_1', { paymentMethod: 'COD' })).rejects.toThrow(
+        BadRequestError,
+      );
     });
 
     it('throws ConflictError when cart contains an item with insufficient stock', async () => {
@@ -59,7 +61,9 @@ describe('OrderService', () => {
         ],
       } as any);
 
-      await expect(OrderService.createOrder('usr_1', { paymentMethod: 'COD' })).rejects.toThrow(ConflictError);
+      await expect(OrderService.createOrder('usr_1', { paymentMethod: 'COD' })).rejects.toThrow(
+        ConflictError,
+      );
     });
 
     it('throws ConflictError when cart contains an inactive product', async () => {
@@ -82,7 +86,9 @@ describe('OrderService', () => {
         ],
       } as any);
 
-      await expect(OrderService.createOrder('usr_1', { paymentMethod: 'COD' })).rejects.toThrow(ConflictError);
+      await expect(OrderService.createOrder('usr_1', { paymentMethod: 'COD' })).rejects.toThrow(
+        ConflictError,
+      );
     });
 
     it('silently ignores shipping address that does not belong to user', async () => {
@@ -113,7 +119,10 @@ describe('OrderService', () => {
         shippingAddressSnapshot: null,
       } as any);
 
-      const order = await OrderService.createOrder('usr_1', { shippingAddressId: 'addr_999', paymentMethod: 'COD' });
+      const order = await OrderService.createOrder('usr_1', {
+        shippingAddressId: 'addr_999',
+        paymentMethod: 'COD',
+      });
 
       expect(order.shippingAddressSnapshot).toBeNull();
     });
@@ -315,7 +324,10 @@ describe('OrderService', () => {
         totalCents: 95000, // 100000 - 5000 (max discount)
       } as any);
 
-      const order = await OrderService.createOrder('usr_1', { couponCode: 'SAVE10', paymentMethod: 'COD' });
+      const order = await OrderService.createOrder('usr_1', {
+        couponCode: 'SAVE10',
+        paymentMethod: 'COD',
+      });
 
       expect(prisma.coupon.findUnique).toHaveBeenCalledWith({
         where: { code: 'SAVE10' },
@@ -362,7 +374,10 @@ describe('OrderService', () => {
         totalCents: 100000,
       } as any);
 
-      const order = await OrderService.createOrder('usr_1', { couponCode: 'EXPIRED', paymentMethod: 'COD' });
+      const order = await OrderService.createOrder('usr_1', {
+        couponCode: 'EXPIRED',
+        paymentMethod: 'COD',
+      });
 
       expect(prisma.coupon.update).not.toHaveBeenCalled();
       expect(order.totalCents).toBe(100000);
@@ -415,7 +430,10 @@ describe('OrderService', () => {
         },
       } as any);
 
-      await OrderService.createOrder('usr_1', { shippingAddressId: 'addr_1', paymentMethod: 'COD' });
+      await OrderService.createOrder('usr_1', {
+        shippingAddressId: 'addr_1',
+        paymentMethod: 'COD',
+      });
 
       expect(prisma.address.findFirst).toHaveBeenCalledWith({
         where: { id: 'addr_1', userId: 'usr_1' },
@@ -706,12 +724,18 @@ describe('OrderService', () => {
         payment: { provider: 'COD', status: 'PENDING' },
         items: [{ id: 'item_1', productId: 'prod_1', quantity: 2 }],
       } as any);
-      (prisma.order.update as any).mockResolvedValueOnce({ id: 'ord_1', status: 'CANCELLED' } as any);
+      (prisma.order.update as any).mockResolvedValueOnce({
+        id: 'ord_1',
+        status: 'CANCELLED',
+      } as any);
 
       const result = await OrderService.cancelOrder('ord_1', 'usr_1');
 
       expect(result).toEqual({ message: 'Order cancelled successfully' });
-      expect(prisma.order.update).toHaveBeenCalledWith({ where: { id: 'ord_1' }, data: { status: 'CANCELLED' } });
+      expect(prisma.order.update).toHaveBeenCalledWith({
+        where: { id: 'ord_1' },
+        data: { status: 'CANCELLED' },
+      });
     });
 
     it('restores inventory for confirmed orders on cancellation', async () => {
@@ -725,12 +749,21 @@ describe('OrderService', () => {
           { id: 'item_2', productId: 'prod_2', quantity: 1 },
         ],
       } as any);
-      (prisma.order.update as any).mockResolvedValueOnce({ id: 'ord_1', status: 'CANCELLED' } as any);
+      (prisma.order.update as any).mockResolvedValueOnce({
+        id: 'ord_1',
+        status: 'CANCELLED',
+      } as any);
 
       await OrderService.cancelOrder('ord_1', 'usr_1');
 
-      expect(prisma.product.update).toHaveBeenCalledWith({ where: { id: 'prod_1' }, data: { stock: { increment: 2 } } });
-      expect(prisma.product.update).toHaveBeenCalledWith({ where: { id: 'prod_2' }, data: { stock: { increment: 1 } } });
+      expect(prisma.product.update).toHaveBeenCalledWith({
+        where: { id: 'prod_1' },
+        data: { stock: { increment: 2 } },
+      });
+      expect(prisma.product.update).toHaveBeenCalledWith({
+        where: { id: 'prod_2' },
+        data: { stock: { increment: 1 } },
+      });
     });
 
     it('marks pending online payment as FAILED on cancellation', async () => {
@@ -741,12 +774,21 @@ describe('OrderService', () => {
         payment: { id: 'pay_1', provider: 'RAZORPAY', status: 'PENDING' },
         items: [{ id: 'item_1', productId: 'prod_1', quantity: 1 }],
       } as any);
-      (prisma.payment.update as any).mockResolvedValueOnce({ id: 'pay_1', status: 'FAILED' } as any);
-      (prisma.order.update as any).mockResolvedValueOnce({ id: 'ord_1', status: 'CANCELLED' } as any);
+      (prisma.payment.update as any).mockResolvedValueOnce({
+        id: 'pay_1',
+        status: 'FAILED',
+      } as any);
+      (prisma.order.update as any).mockResolvedValueOnce({
+        id: 'ord_1',
+        status: 'CANCELLED',
+      } as any);
 
       await OrderService.cancelOrder('ord_1', 'usr_1');
 
-      expect(prisma.payment.update).toHaveBeenCalledWith({ where: { id: 'pay_1' }, data: { status: 'FAILED' } });
+      expect(prisma.payment.update).toHaveBeenCalledWith({
+        where: { id: 'pay_1' },
+        data: { status: 'FAILED' },
+      });
     });
 
     it('allows customer to cancel own order', async () => {
@@ -757,7 +799,10 @@ describe('OrderService', () => {
         payment: { provider: 'COD', status: 'PENDING' },
         items: [{ id: 'item_1', productId: 'prod_1', quantity: 1 }],
       } as any);
-      (prisma.order.update as any).mockResolvedValueOnce({ id: 'ord_1', status: 'CANCELLED' } as any);
+      (prisma.order.update as any).mockResolvedValueOnce({
+        id: 'ord_1',
+        status: 'CANCELLED',
+      } as any);
 
       const result = await OrderService.cancelOrder('ord_1', 'usr_1');
       expect(result).toEqual({ message: 'Order cancelled successfully' });

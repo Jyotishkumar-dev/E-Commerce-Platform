@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  createOrderSchema,
-  cancelOrderSchema,
-} from '../validators/order.validator.js';
+import { createOrderSchema, cancelOrderSchema } from '../validators/order.validator.js';
 
 describe('Order Validators', () => {
   describe('createOrderSchema', () => {

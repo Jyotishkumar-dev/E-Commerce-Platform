@@ -16,7 +16,12 @@ export class PaymentController {
   static async verifyPayment(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await PaymentService.verifyPayment(req.body);
-      return ok(res, req, result, result.alreadyProcessed ? 'Payment already verified' : 'Payment verified successfully');
+      return ok(
+        res,
+        req,
+        result,
+        result.alreadyProcessed ? 'Payment already verified' : 'Payment verified successfully',
+      );
     } catch (error) {
       next(error);
     }
