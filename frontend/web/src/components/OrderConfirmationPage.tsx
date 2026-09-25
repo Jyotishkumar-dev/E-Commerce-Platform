@@ -25,22 +25,6 @@ function getPaymentStatusLabel(status: string): string {
 
 export function OrderConfirmationPage({ orderId, onContinueShopping, onViewOrder }: OrderConfirmationPageProps) {
   const { order, isLoading, isError, error, refetch } = useOrder(orderId);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return (
-      <main className="confirmation-page">
-        <div className="confirmation-loading" aria-live="polite">
-          <div className="spinner" aria-hidden="true"></div>
-          <p>Loading order details…</p>
-        </div>
-      </main>
-    );
-  }
 
   if (isLoading) {
     return (

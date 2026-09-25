@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback, type MouseEvent } from 'react';
 import type { Product } from '../lib/api';
-import { ProductImageGallery } from './ProductImageGallery';
 import { FullScreenImageViewer } from './FullScreenImageViewer';
 import { formatMoney } from './ProductCard';
 import { ReviewSummary, ReviewList, ReviewForm } from './ReviewComponents';
@@ -30,15 +29,6 @@ export function ProductDetailModal({
   const { summary } = useReviewSummary(product?.id ?? null);
   const { reviews, pagination, refetch: refetchReviews } = useProductReviews(product?.id ?? null, { sort: 'newest', page: reviewsPage, limit: 5 });
   const { review: userReview } = useUserReview(product?.id ?? null);
-
-  useEffect(() => {
-    setQuantity(1);
-  }, [product?.id]);
-
-  useEffect(() => {
-    setReviewsPage(1);
-    setShowReviewForm(false);
-  }, [product?.id]);
 
   if (!product) return null;
 
