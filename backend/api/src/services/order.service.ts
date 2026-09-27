@@ -68,6 +68,15 @@ export class OrderService {
           (!coupon.usageLimit || coupon.usedCount < coupon.usageLimit) &&
           subtotalCents >= coupon.minimumOrderValueCents
         ) {
+          // Atomic increment of usedCount - throws if coupon not found or limit reached
+          await tx.coupon.update({
+            where: {
+              id: coupon.id,
+              usedCount: { lt: coupon.usageLimit ?? Number.MAX_SAFE_INTEGER },
+            },
+            data: { usedCount: { increment: 1 } },
+          });
+
           couponId = coupon.id;
           if (coupon.type === 'PERCENTAGE') {
             discountCents = Math.round((subtotalCents * coupon.value) / 100);
@@ -77,11 +86,6 @@ export class OrderService {
           } else {
             discountCents = Math.min(coupon.value, subtotalCents);
           }
-
-          await tx.coupon.update({
-            where: { id: coupon.id },
-            data: { usedCount: { increment: 1 } },
-          });
         }
       }
 

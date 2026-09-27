@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
-import { ConflictError, NotFoundError } from '../utils/errors.js';
+import { BadRequestError, ConflictError, NotFoundError } from '../utils/errors.js';
 
 export interface ProductQueryInput {
   search?: string;
@@ -146,6 +146,14 @@ export class ProductService {
   }
 
   static async createProduct(sellerId: string, input: Prisma.ProductUncheckedCreateInput) {
+    if (
+      typeof input.compareAtPriceCents === 'number' &&
+      typeof input.priceCents === 'number' &&
+      input.compareAtPriceCents <= input.priceCents
+    ) {
+      throw new BadRequestError('Compare-at price must be greater than the selling price.');
+    }
+
     const slug =
       input.slug ||
       input.title
@@ -172,6 +180,31 @@ export class ProductService {
     const existing = await prisma.product.findUnique({ where: { id: productId } });
     if (!existing) {
       throw new NotFoundError('Product not found.');
+    }
+
+    const newCompareAtPrice = input.compareAtPriceCents;
+    const newPrice = input.priceCents;
+    const existingCompareAtPrice = existing.compareAtPriceCents;
+    const existingPrice = existing.priceCents;
+
+    if (
+      typeof newCompareAtPrice === 'number' &&
+      typeof newPrice === 'number' &&
+      newCompareAtPrice <= newPrice
+    ) {
+      throw new BadRequestError('Compare-at price must be greater than the selling price.');
+    } else if (
+      typeof newCompareAtPrice === 'number' &&
+      typeof existingPrice === 'number' &&
+      newCompareAtPrice <= existingPrice
+    ) {
+      throw new BadRequestError('Compare-at price must be greater than the selling price.');
+    } else if (
+      typeof newPrice === 'number' &&
+      typeof existingCompareAtPrice === 'number' &&
+      existingCompareAtPrice <= newPrice
+    ) {
+      throw new BadRequestError('Compare-at price must be greater than the selling price.');
     }
 
     return prisma.product.update({

@@ -333,7 +333,7 @@ describe('OrderService', () => {
         where: { code: 'SAVE10' },
       });
       expect(prisma.coupon.update).toHaveBeenCalledWith({
-        where: { id: 'coupon_1' },
+        where: { id: 'coupon_1', usedCount: { lt: 100 } },
         data: { usedCount: { increment: 1 } },
       });
       expect(order.totalCents).toBe(95000);

@@ -86,6 +86,66 @@ pnpm dev
 
 ---
 
+## 🧪 Testing & Quality
+
+### Run Tests
+```bash
+# Run all tests across monorepo
+pnpm test
+
+# Run tests for specific package
+pnpm --filter @e-commerce-platform/api test
+pnpm --filter @e-commerce-platform/web test
+pnpm --filter @e-commerce-platform/shared test
+
+# Run tests with coverage
+pnpm --filter @e-commerce-platform/api test:coverage
+pnpm --filter @e-commerce-platform/web test:coverage
+pnpm --filter @e-commerce-platform/shared test:coverage
+
+# Run E2E tests (frontend only, requires running dev server)
+pnpm --filter @e-commerce-platform/web test:e2e
+pnpm --filter @e-commerce-platform/web test:e2e:ui
+```
+
+### Linting & Type Checking
+```bash
+# Lint all packages (allows warnings)
+pnpm lint
+
+# Strict lint (fails on warnings)
+pnpm --filter @e-commerce-platform/web lint:strict
+pnpm --filter @e-commerce-platform/api lint
+pnpm --filter @e-commerce-platform/shared lint
+
+# Type check all packages
+pnpm typecheck
+
+# Format code
+pnpm format
+
+# Check formatting
+pnpm format:check
+```
+
+### Quality Gates
+```bash
+# Run full quality gate for each package (lint + typecheck + test)
+pnpm --filter @e-commerce-platform/api quality-gate
+pnpm --filter @e-commerce-platform/web quality-gate
+pnpm --filter @e-commerce-platform/shared quality-gate
+```
+
+### Test Coverage Summary (as of Phase 14)
+| Package | Test Files | Tests | Status |
+|---------|------------|-------|--------|
+| Backend (`@e-commerce-platform/api`) | 22 | 275 | ✅ Passing |
+| Frontend (`@e-commerce-platform/web`) | 13 | 93 | ✅ Passing |
+| Shared (`@e-commerce-platform/shared`) | 1 | 16 | ✅ Passing |
+| **Total** | **36** | **384** | ✅ **All Passing** |
+
+---
+
 ## 🎨 Brand Identity
 
 * **Brand Name:** `Shopvibe.store`

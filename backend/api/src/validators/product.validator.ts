@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const productQuerySchema = z.object({
-  search: z.string().trim().optional(),
+  search: z.string().trim().max(100).optional(),
   category: z.string().trim().optional(),
   minPrice: z.coerce.number().int().nonnegative().optional(),
   maxPrice: z.coerce.number().int().nonnegative().optional(),

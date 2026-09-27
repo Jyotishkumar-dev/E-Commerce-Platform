@@ -17,8 +17,8 @@ const router = Router();
 // Public authentication flows
 router.post('/register', authLimiter, validateBody(registerSchema), AuthController.register);
 router.post('/login', authLimiter, validateBody(loginSchema), AuthController.login);
-router.post('/refresh-token', AuthController.refreshSession);
-router.post('/logout', AuthController.logout);
+router.post('/refresh-token', authLimiter, AuthController.refreshSession);
+router.post('/logout', authenticate, AuthController.logout);
 router.post(
   '/forgot-password',
   authLimiter,

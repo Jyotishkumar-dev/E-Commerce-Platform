@@ -18,7 +18,7 @@ export const updateOrderStatusSchema = z.object({
 });
 
 export const adminProductFiltersSchema = z.object({
-  search: z.string().trim().optional(),
+  search: z.string().trim().max(100).optional(),
   category: z.string().trim().optional(),
   isActive: z.preprocess((val) => {
     if (val === 'true' || val === true || val === 1 || val === '1') return true;

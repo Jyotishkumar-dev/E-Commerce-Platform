@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const mountedRef = useRef(true);
 
   // Silent session hydration on initial application mount
   const hydrateSession = useCallback(async () => {
@@ -32,21 +34,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await api.post('/auth/refresh-token');
       if (response.data?.success && response.data?.data?.accessToken) {
         const { accessToken, user: authenticatedUser } = response.data.data;
-        setAccessToken(accessToken);
-        setUser(authenticatedUser);
+        if (mountedRef.current) {
+          setAccessToken(accessToken);
+          setUser(authenticatedUser);
+        }
       }
     } catch {
       // Unauthenticated / expired session is completely normal on initial page load
-      setAccessToken();
-      setUser(null);
+      if (mountedRef.current) {
+        setAccessToken();
+        setUser(null);
+      }
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void hydrateSession();
+    return () => {
+      mountedRef.current = false;
+    };
   }, [hydrateSession]);
 
   const login = useCallback(async (credentials: { email: string; password: string }) => {

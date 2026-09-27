@@ -271,7 +271,8 @@ export class AdminService {
         await tx.order.update({ where: { id: orderId }, data: { status } });
 
         // Restore inventory if order was confirmed/processing/shipped
-        if (['CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'].includes(existing.status)) {
+        // Do NOT restore inventory for DELIVERED orders - customer has the product
+        if (['CONFIRMED', 'PROCESSING', 'SHIPPED'].includes(existing.status)) {
           const orderWithItems = await tx.order.findUnique({
             where: { id: orderId },
             include: { items: true },

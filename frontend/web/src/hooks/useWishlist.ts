@@ -50,12 +50,13 @@ export function useWishlist() {
           (i) => i.product.id !== productId && i.productId !== productId,
         );
       } else {
-        // Optimistically add dummy item; real item will be synced on invalidation
+        // Optimistically add item with minimal product data
         nextItems = [
           {
             id: `temp_${productId}`,
             productId,
-            product: { id: productId } as any,
+            product: { id: productId, title: '', priceCents: 0, images: [], stock: 0, category: '', currency: 'INR', isActive: true } as any,
+            createdAt: new Date().toISOString(),
           },
           ...previousItems,
         ];
