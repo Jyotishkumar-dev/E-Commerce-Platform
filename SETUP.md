@@ -20,6 +20,11 @@ pnpm --filter @e-commerce-platform/api prisma:seed
 pnpm dev
 ```
 
+> **Note:** If you previously ran an older local Postgres container with different
+> credentials, remove the stale volume once before starting:
+> `docker compose down -v`.
+> This deletes all local database data, so only do this when you can reseed.
+
 Web: `http://localhost:5173` · API health: `http://localhost:5000/api/v1/health`
 
 The seed creates demo accounts:
