@@ -254,7 +254,7 @@ export function App() {
 
       {page.startsWith('admin') && user?.role === 'ADMIN' && (
         <div className="admin-layout">
-          <AdminSidebar currentPage={page} onNavigate={setPage} />
+          <AdminSidebar currentPage={page} onNavigate={(p: string) => setPage(p as typeof page)} />
           <div>
 
       {page === 'shop' && (

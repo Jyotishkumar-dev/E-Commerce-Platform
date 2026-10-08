@@ -1,4 +1,3 @@
-import { formatMoney } from '../components/ProductCard';
 import { useState } from 'react';
 import { useCreateReview, useUpdateReview, useDeleteReview } from '../hooks/useReviews';
 
@@ -30,10 +29,9 @@ interface ReviewSummaryProps {
     totalReviews: number;
     ratingDistribution: Record<1 | 2 | 3 | 4 | 5, number>;
   } | null;
-  productTitle?: string;
 }
 
-export function ReviewSummary({ summary, productTitle }: ReviewSummaryProps) {
+export function ReviewSummary({ summary }: ReviewSummaryProps) {
   if (!summary || summary.totalReviews === 0) {
     return (
       <div className="review-summary-empty">
@@ -65,9 +63,9 @@ export function ReviewSummary({ summary, productTitle }: ReviewSummaryProps) {
             <RatingBar
               key={rating}
               rating={rating as 1 | 2 | 3 | 4 | 5}
-              percentage={summary.ratingDistribution[rating as 1 | 2 | 3 | 4 | 5] / Math.max(...Object.values(summary.ratingDistribution), 1) * 100}
+              percentage={summary.ratingDistribution[rating as 1 | 2 | 3 | 4 | 5] / maxCount * 100}
               count={summary.ratingDistribution[rating as 1 | 2 | 3 | 4 | 5]}
-              maxCount={Math.max(...Object.values(summary.ratingDistribution), 1)}
+              maxCount={maxCount}
             />
           ))}
         </div>
@@ -214,7 +212,7 @@ export function ReviewForm({ productId, onSuccess, onCancel, initialReview }: Re
         await createReview({ productId, rating, title: title.trim() || undefined, body: body.trim() });
       }
       onSuccess?.();
-    } catch (err) {
+    } catch {
       // Error handled by mutation
     } finally {
       setIsSubmitting(false);
@@ -227,7 +225,7 @@ export function ReviewForm({ productId, onSuccess, onCancel, initialReview }: Re
     try {
       await deleteReview(initialReview.id);
       onCancel?.();
-    } catch (err) {
+    } catch {
       // Error handled by mutation
     }
   };

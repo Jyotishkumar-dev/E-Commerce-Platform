@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { api, type Order, type Product, type Category, type User, type Coupon, type Pagination, messageOf } from '../lib/api';
+import { api, type Product, type Category, type Coupon, type Pagination, messageOf } from '../lib/api';
 import { formatMoney } from './useOrders';
 
 export interface AnalyticsData {
@@ -185,8 +185,6 @@ export function useAdminProducts(filters?: {
   page?: number;
   limit?: number;
 }) {
-  const queryClient = useQueryClient();
-
   const {
     data,
     isLoading,

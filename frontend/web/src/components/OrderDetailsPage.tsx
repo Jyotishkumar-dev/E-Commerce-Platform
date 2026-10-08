@@ -31,7 +31,7 @@ interface OrderDetailsPageProps {
 export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
   const { order, isLoading, isError, error, refetch } = useOrder(orderId);
   const { cancelOrder, isCancelling } = useOrders();
-  const { retryPayment, cancelPayment, refundPayment, isRetrying, isCancelling: isCancellingPayment, isRefunding } = usePayments();
+  const { retryPayment, refundPayment, isRetrying, isCancelling: isCancellingPayment, isRefunding } = usePayments();
   const [showRetryConfirm, setShowRetryConfirm] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showRefundConfirm, setShowRefundConfirm] = useState(false);

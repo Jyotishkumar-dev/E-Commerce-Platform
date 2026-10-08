@@ -3,7 +3,6 @@ import { api, messageOf, type Product } from '../lib/api';
 import { useAdminProductUpdate } from '../hooks/useAdmin';
 import { useAdminProductStock } from '../hooks/useAdmin';
 import { ProductMediaManager } from './ProductMediaManager';
-import { ImagePlaceholder } from './ImagePlaceholder';
 
 interface ProductEditPageProps {
   productId: string;

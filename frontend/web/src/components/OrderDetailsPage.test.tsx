@@ -41,6 +41,8 @@ const mockOrder: Order = {
   taxCents: 0,
   createdAt: '2024-06-15T10:30:00.000Z',
   shippingAddressSnapshot: {
+    id: 'addr_1',
+    userId: 'usr_1',
     fullName: 'Test User',
     phone: '+919876543210',
     addressLine1: '123 Test St',
@@ -75,6 +77,7 @@ const mockOrder: Order = {
     createdAt: '2024-06-15T10:30:00.000Z',
     updatedAt: '2024-06-15T10:30:00.000Z',
   },
+  user: { id: 'usr_1', email: 'test@example.com', name: 'Test User' },
 };
 
 describe('OrderDetailsPage', () => {

@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useOrders } from '../hooks/useOrders';
 import { usePayments } from '../hooks/usePayments';
-import { formatMoney, formatAddress, getOrderStatusColor, formatOrderStatus } from '../hooks/useOrders';
-import { api, messageOf, type Order, type Address } from '../lib/api';
+import { formatMoney, getOrderStatusColor, formatOrderStatus } from '../hooks/useOrders';
+import { messageOf, type Order } from '../lib/api';
 
 function getPaymentBadgeClass(status: string): string {
   switch (status) {

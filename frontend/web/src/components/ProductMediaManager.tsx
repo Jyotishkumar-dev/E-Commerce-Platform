@@ -1,4 +1,4 @@
-import { useState, useRef, type ChangeEvent, type MouseEvent } from 'react';
+import { useState } from 'react';
 import { PRODUCT_MEDIA_CONFIG } from '../lib/mediaConfig';
 import { ImagePlaceholder } from './ImagePlaceholder';
 import { ProductImageUploader } from './ProductImageUploader';
@@ -17,7 +17,6 @@ export function ProductMediaManager({
   onUpload,
 }: ProductMediaManagerProps) {
   const [selectedId, setSelectedId] = useState<string | null>(images.find((i) => i.isPrimary)?.id ?? images[0]?.id ?? null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const selectedImage = images.find((i) => i.id === selectedId) ?? images[0] ?? null;
 

@@ -54,7 +54,7 @@ interface RazorpayInstance {
 
 export function CheckoutPage({ onClose, onOrderComplete }: CheckoutPageProps) {
   const { items, itemCount, subtotalCents, hasUnavailableItems, refetch: refetchCart } = useCart();
-  const { addresses, refetch: refetchAddresses, createAddress } = useAddresses();
+  const { addresses, refetch: refetchAddresses } = useAddresses();
   const defaultAddress = useDefaultAddress();
   const { createOrder } = useOrders();
   const { createPaymentOrder, verifyPayment, isCreating: isCreatingPayment, isVerifying } = usePayments();
@@ -100,7 +100,7 @@ export function CheckoutPage({ onClose, onOrderComplete }: CheckoutPageProps) {
   };
 
   const openRazorpayCheckout = async (order: Order) => {
-    if (!razorpayLoaded || !window.Razorpay) {
+    if (!window.Razorpay) {
       setError('Payment gateway failed to load. Please try again.');
       return;
     }

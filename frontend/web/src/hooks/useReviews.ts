@@ -78,7 +78,6 @@ export function useUserReview(productId: string | null) {
 
 export function useCreateReview() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
 
   const mutation = useMutation({
     mutationFn: async (input: { productId: string; rating: number; title?: string; body: string; orderId?: string }) => {
@@ -103,7 +102,7 @@ export function useUpdateReview() {
       const response = await api.patch(`/reviews/${input.reviewId}`, input);
       return response.data?.data?.review;
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['reviews'] });
       void queryClient.invalidateQueries({ queryKey: ['review-summary'] });
       void queryClient.invalidateQueries({ queryKey: ['user-review'] });

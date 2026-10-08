@@ -1,6 +1,5 @@
 import { useState, useRef, type ChangeEvent, type MouseEvent } from 'react';
 import { PRODUCT_MEDIA_CONFIG } from '../lib/mediaConfig';
-import { ImagePlaceholder } from './ImagePlaceholder';
 
 interface ProductImageUploaderProps {
   onFilesSelect?: (files: File[]) => void;

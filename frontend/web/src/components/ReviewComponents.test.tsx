@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { ReviewSummary, ReviewCard, ReviewList } from '../components/ReviewComponents';
 
 vi.mock('../hooks/useReviews', () => ({

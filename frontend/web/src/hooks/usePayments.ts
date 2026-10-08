@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { api, messageOf } from '../lib/api';
+import { api } from '../lib/api';
 
 export interface PaymentOrder {
   providerOrderId: string;

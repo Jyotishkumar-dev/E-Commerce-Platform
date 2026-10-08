@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAdminProductCreate } from '../hooks/useAdmin';
 import { useAdminCategories } from '../hooks/useAdmin';
-import { useAdminUploadProductImage } from '../hooks/useAdmin';
 import { ProductMediaManager } from './ProductMediaManager';
 import type { ProductImage } from '../lib/api';
 
@@ -12,7 +11,6 @@ interface ProductCreatePageProps {
 
 export function ProductCreatePage({ onBack }: ProductCreatePageProps) {
   const { createProduct, isCreating } = useAdminProductCreate();
-  const { uploadImages, isUploading } = useAdminUploadProductImage(null);
   const { categories } = useAdminCategories();
 
   const [form, setForm] = useState({
@@ -27,7 +25,6 @@ export function ProductCreatePage({ onBack }: ProductCreatePageProps) {
   });
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const [mediaImages, setMediaImages] = useState<ProductImage[]>([]);
-  const [createdProductId, setCreatedProductId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string>('');
   const [noticeType, setNoticeType] = useState<'success' | 'error'>('success');
 
@@ -62,18 +59,8 @@ export function ProductCreatePage({ onBack }: ProductCreatePageProps) {
       });
 
       if (product?.id) {
-        setCreatedProductId(product.id);
-
         // Then upload images if any
         if (mediaImages.length > 0) {
-          const files = mediaImages
-            .filter((img) => img.url.startsWith('blob:'))
-            .map((img) => {
-              // Convert blob URL to File - we'll need to fetch it
-              return null;
-            })
-            .filter(Boolean);
-
           // Note: For real upload, we need actual File objects.
           // The ProductMediaManager currently uses blob URLs for previews.
           // We'll need to store File objects alongside or fetch from blob URLs.
@@ -83,7 +70,7 @@ export function ProductCreatePage({ onBack }: ProductCreatePageProps) {
         setNotice('Product created successfully. Redirecting...');
         setTimeout(() => onBack?.(), 1500);
       }
-    } catch (err) {
+    } catch {
       setNoticeType('error');
       setNotice('Failed to create product. Please try again.');
     }

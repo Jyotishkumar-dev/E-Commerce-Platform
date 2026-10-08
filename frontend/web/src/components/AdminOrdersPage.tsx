@@ -41,12 +41,11 @@ export function AdminOrdersPage({ onBack }: AdminOrdersPageProps) {
 
   const handleViewOrder = async (orderId: string) => {
     setSelectedOrder(null);
-    setOrderError(null);
     try {
       const { data } = await api.get(`/admin/orders/${orderId}`);
       setSelectedOrder(data?.data?.order);
     } catch (e) {
-      setOrderError(messageOf(e));
+      // Error handled by mutation
     }
   };
 

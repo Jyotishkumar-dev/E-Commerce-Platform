@@ -1,4 +1,4 @@
-import { useState, type MouseEvent } from 'react';
+import { useState } from 'react';
 import { ImagePlaceholder } from './ImagePlaceholder';
 
 interface ProductImageGalleryProps {
@@ -23,7 +23,7 @@ export function ProductImageGallery({ images, fallbackUrl, onImageClick }: Produ
     setSelectedIndex(index);
   };
 
-  const handleMainClick = (e: MouseEvent) => {
+  const handleMainClick = () => {
     if (mainImage && onImageClick) {
       onImageClick(mainImage);
     }
