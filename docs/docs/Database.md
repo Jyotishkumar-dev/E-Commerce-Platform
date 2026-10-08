@@ -1,4 +1,4 @@
-# AI-Powered Smart Commerce Platform — Database Architecture
+# Shopvibe E-Commerce Platform — Database Architecture
 
 **Stack:** PostgreSQL 16 + Prisma ORM + Redis + Node.js + Express
 **Scope:** Database layer only. No backend/API code.

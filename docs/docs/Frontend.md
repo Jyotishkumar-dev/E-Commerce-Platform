@@ -1,6 +1,6 @@
 # Phase 7 — Frontend Architecture
 
-**Project:** AI-Powered Smart Commerce Platform
+**Project:** Shopvibe E-Commerce Platform
 **Document Type:** Enterprise Frontend Architecture Specification
 **Stack:** React 19, TypeScript, Vite, Tailwind CSS, Shadcn/UI, React Router DOM, TanStack Query, Zustand, React Hook Form, Zod, Framer Motion, Axios, Socket.IO Client, Recharts, React Hot Toast, Cloudinary, Stripe/Razorpay SDK, Vercel
 
@@ -8,7 +8,7 @@
 
 ## 1. Frontend High-Level Architecture
 
-The frontend of the Smart Commerce Platform is built as a **layered, feature-driven Single Page Application (SPA)** using React 19 and TypeScript, bundled with Vite. The architecture mirrors the backend's separation of concerns (Phase 5) so that both halves of the system evolve in a predictable, symmetrical way — a **Presentation Layer** consuming a **Domain-Oriented Feature Layer**, backed by a **State Layer** and an **API Layer**, all sitting on top of a shared **Utility Layer**.
+The frontend of the Shopvibe E-Commerce Platform is built as a **layered, feature-driven Single Page Application (SPA)** using React 19 and TypeScript, bundled with Vite. The architecture mirrors the backend's separation of concerns (Phase 5) so that both halves of the system evolve in a predictable, symmetrical way — a **Presentation Layer** consuming a **Domain-Oriented Feature Layer**, backed by a **State Layer** and an **API Layer**, all sitting on top of a shared **Utility Layer**.
 
 The guiding principle is: **pages compose features, features compose components, components never know about the network.**
 
@@ -56,7 +56,7 @@ This layering enforces a **one-way dependency rule**: Pages depend on Features, 
 ## 2. Project Folder Structure
 
 ```
-smart-commerce-frontend/
+shopvibe-frontend/
 ├── public/
 │   ├── favicon.ico
 │   ├── robots.txt
@@ -837,7 +837,7 @@ graph TD
 
 ## Frontend Architecture Summary
 
-The Smart Commerce Platform's frontend is a **feature-first, strictly layered React 19 + TypeScript application** where every architectural decision reinforces the same core rule: **server state, client state, and presentation never blur into one another.** TanStack Query owns everything that comes from the backend; Zustand owns everything that is purely client-side session/UI state; components remain presentational and network-agnostic; and a single Axios instance with interceptor-driven JWT refresh is the only path to the backend.
+The Shopvibe E-Commerce Platform's frontend is a **feature-first, strictly layered React 19 + TypeScript application** where every architectural decision reinforces the same core rule: **server state, client state, and presentation never blur into one another.** TanStack Query owns everything that comes from the backend; Zustand owns everything that is purely client-side session/UI state; components remain presentational and network-agnostic; and a single Axios instance with interceptor-driven JWT refresh is the only path to the backend.
 
 Routing is role-aware and code-split from the ground up (public/customer/seller/admin), so bundle size scales with what a given user actually needs, not with the platform's total feature surface. Atomic Design keeps the component layer composable and testable, Shadcn/UI and Tailwind's token system keep the visual language consistent and reskin-able, and Framer Motion is scoped to genuinely meaningful interactions rather than blanket decoration.
 

@@ -1,4 +1,4 @@
-# AI-Powered Smart Commerce Platform — System Design Document
+# Shopvibe E-Commerce Platform — System Design Document
 
 **Stack:** React + TypeScript + Vite + Tailwind + Shadcn UI | Node.js + Express + Prisma + PostgreSQL + Redis | JWT + Refresh Token + RBAC | Gemini/OpenAI | Vercel + Railway
 
@@ -87,7 +87,7 @@ This is the standard **Controller → Service → Repository** pattern. The rule
 Use a monorepo (npm/pnpm workspaces or Turborepo) with three packages: `apps/web`, `apps/api`, `packages/shared`. This lets you share TypeScript types (DTOs, enums, Zod schemas) between frontend and backend — eliminating an entire class of "frontend/backend contract drift" bugs.
 
 ```
-smart-commerce-platform/
+e-commerce-platform/
 ├── apps/
 │   ├── web/                          # React + Vite frontend
 │   │   ├── src/
@@ -479,7 +479,7 @@ Structured in phases, each phase shippable/demoable on its own — this matters 
 - Seller-facing AI description generator
 - Async review sentiment analysis
 - Cost/rate-limit guardrails on all AI endpoints
-- Deliverable: the "smart" in Smart Commerce is now visibly demoable
+- Deliverable: the AI features are now visibly demoable
 
 ### Phase 6 — Admin, Observability & Hardening (Week 11–13)
 - Admin dashboard: user/role management, audit log viewer, order oversight

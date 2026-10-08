@@ -1,8 +1,8 @@
 # Phase 6 — DevOps & Infrastructure Architecture
-## AI-Powered Smart Commerce Platform
+## Shopvibe E-Commerce Platform
 
 **Author Role:** Senior DevOps / Platform Architect (Amazon / Shopify / Flipkart Infrastructure Standards)
-**Scope:** End-to-end infrastructure, CI/CD, containerization, deployment, observability, security, and disaster recovery for the AI-Powered Smart Commerce Platform.
+**Scope:** End-to-end infrastructure, CI/CD, containerization, deployment, observability, security, and disaster recovery for the Shopvibe E-Commerce Platform.
 
 ---
 
@@ -468,12 +468,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build backend image
-        run: docker build -t smart-commerce-backend:${{ github.sha }} ./backend
+        run: docker build -t shopvibe-backend:${{ github.sha }} ./backend
 
       - name: Trivy vulnerability scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: smart-commerce-backend:${{ github.sha }}
+          image-ref: shopvibe-backend:${{ github.sha }}
           severity: CRITICAL,HIGH
           exit-code: 1
 ```
@@ -522,8 +522,8 @@ jobs:
     steps:
       - name: Hit health endpoint
         run: |
-          curl --fail https://api.smartcommerce.app/health
-          curl --fail https://smartcommerce.app
+          curl --fail https://api.shopvibe.store/health
+          curl --fail https://shopvibe.store
 
   notify:
     needs: smoke-test
@@ -692,7 +692,7 @@ Railway is used as the primary backend host for its native Docker support, built
 
 ```mermaid
 flowchart TB
-    subgraph Railway["Railway Project: smart-commerce"]
+    subgraph Railway["Railway Project: shopvibe"]
         direction TB
         SVC1[Service: backend-api]
         SVC2[Service: backend-worker]
@@ -729,19 +729,19 @@ flowchart TB
 
 ### 10.4 Render as Failover/DR Host
 
-Render is configured as a **cold-standby** target with an identical Docker build, deployed manually or via a scripted `render.yaml` blueprint if Railway experiences an extended outage. DNS failover via a low-TTL CNAME allows redirecting `api.smartcommerce.app` to Render within minutes.
+Render is configured as a **cold-standby** target with an identical Docker build, deployed manually or via a scripted `render.yaml` blueprint if Railway experiences an extended outage. DNS failover via a low-TTL CNAME allows redirecting `api.shopvibe.store` to Render within minutes.
 
 ```yaml
 # render.yaml (standby blueprint)
 services:
   - type: web
-    name: smart-commerce-backend-dr
+    name: shopvibe-backend-dr
     env: docker
     dockerfilePath: ./backend/Dockerfile
     plan: standard
     healthCheckPath: /health
     envVars:
-      - fromGroup: smart-commerce-prod-secrets
+      - fromGroup: shopvibe-prod-secrets
 ```
 
 ---
@@ -758,8 +758,8 @@ flowchart LR
     B --> C[Static Assets to Edge Network]
     C --> D{Branch}
     D -->|feature/*| E[Preview URL]
-    D -->|develop| F[staging.smartcommerce.app]
-    D -->|main| G[smartcommerce.app - Production Alias]
+    D -->|develop| F[staging.shopvibe.store]
+    D -->|main| G[shopvibe.store - Production Alias]
 ```
 
 ### 11.2 `vercel.json`
@@ -862,16 +862,16 @@ limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
 
 server {
     listen 80;
-    server_name smartcommerce.app;
+    server_name shopvibe.store;
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl http2;
-    server_name smartcommerce.app;
+    server_name shopvibe.store;
 
-    ssl_certificate     /etc/letsencrypt/live/smartcommerce.app/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/smartcommerce.app/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/shopvibe.store/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/shopvibe.store/privkey.pem;
     ssl_protocols       TLSv1.2 TLSv1.3;
     ssl_ciphers         HIGH:!aNULL:!MD5;
 

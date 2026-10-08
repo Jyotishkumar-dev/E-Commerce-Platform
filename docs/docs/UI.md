@@ -1,4 +1,4 @@
-# Smart Commerce Platform — Complete UI/UX Design System
+# Shopvibe E-Commerce Platform — Complete UI/UX Design System
 
 **Direction:** Apple's material honesty × Stripe's precision × Linear's density-with-calm × Vercel's typographic confidence.
 **Tech context:** React + TypeScript + Tailwind + Shadcn, deployed on Vercel — so the visual language is built to map cleanly onto that stack.

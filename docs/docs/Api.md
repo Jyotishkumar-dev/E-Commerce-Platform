@@ -1,7 +1,7 @@
-# AI-Powered Smart Commerce Platform — REST API Specification
+# Shopvibe E-Commerce Platform — REST API Specification
 
 **Version:** v1.0.0
-**Base URL:** `https://api.smartcommerce.io/api/v1`
+**Base URL:** `https://api.shopvibe.store/api/v1`
 **Document Status:** Draft for Independent Frontend/Backend Development
 **Owner:** Platform Engineering
 
@@ -63,7 +63,7 @@
 | Enums | UPPER_SNAKE_CASE as values | `"status": "PENDING_PAYMENT"` |
 | Versioning | URI-based | `/api/v1/...` |
 
-All endpoints below are prefixed with the base URL `https://api.smartcommerce.io/api/v1` — shown as relative paths (e.g. `/auth/login`) for brevity.
+All endpoints below are prefixed with the base URL `https://api.shopvibe.store/api/v1` — shown as relative paths (e.g. `/auth/login`) for brevity.
 
 ---
 
@@ -449,7 +449,7 @@ Base path: `/auth`
 
 **Example Request**
 ```bash
-curl -X POST https://api.smartcommerce.io/api/v1/auth/register \
+curl -X POST https://api.shopvibe.store/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{"fullName":"John Doe","email":"john@example.com","password":"StrongP@ss123","role":"CUSTOMER"}'
 ```
@@ -508,7 +508,7 @@ Sets `refreshToken` as `httpOnly` cookie. Body:
 
 **Example Request**
 ```bash
-curl -X POST https://api.smartcommerce.io/api/v1/auth/login \
+curl -X POST https://api.shopvibe.store/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"john@example.com","password":"StrongP@ss123"}'
 ```
@@ -717,7 +717,7 @@ curl -X POST https://api.smartcommerce.io/api/v1/auth/login \
     "phone": "+919876543210",
     "role": "CUSTOMER",
     "isEmailVerified": true,
-    "avatarUrl": "https://cdn.smartcommerce.io/avatars/usr_8f2a1c.webp",
+    "avatarUrl": "https://cdn.shopvibe.store/avatars/usr_8f2a1c.webp",
     "createdAt": "2026-01-12T10:00:00.000Z"
   }
 }
@@ -1079,7 +1079,7 @@ Base path: `/products`
 
 **Validation Rules**
 - `images`: array, 1–10 items.
-- `url`: required, must be a `smartcommerce` CDN URL (uploaded via §16.1 first).
+- `url`: required, must be a `Shopvibe` CDN URL (uploaded via §16.1 first).
 - Exactly one image may have `isPrimary: true`.
 
 **Success Response — `201 Created`** — returns array of created image records with `id`.
@@ -2421,7 +2421,7 @@ Base path: `/uploads`. Files are streamed to object storage (S3-compatible); thi
 
 **Success Response — `201 Created`**
 ```json
-{ "success": true, "statusCode": 201, "message": "Image uploaded", "data": { "url": "https://cdn.smartcommerce.io/products/img_9f1a2b.webp", "width": 1200, "height": 1200, "sizeBytes": 184320 } }
+{ "success": true, "statusCode": 201, "message": "Image uploaded", "data": { "url": "https://cdn.shopvibe.store/products/img_9f1a2b.webp", "width": 1200, "height": 1200, "sizeBytes": 184320 } }
 ```
 
 **Error Responses**
@@ -2441,7 +2441,7 @@ Base path: `/uploads`. Files are streamed to object storage (S3-compatible); thi
 
 **Request Body**
 ```json
-{ "url": "https://cdn.smartcommerce.io/products/img_9f1a2b.webp" }
+{ "url": "https://cdn.shopvibe.store/products/img_9f1a2b.webp" }
 ```
 
 **Success Response — `200 OK`**

@@ -1,5 +1,5 @@
 # Phase 5 — Backend Architecture
-### AI-Powered Smart Commerce Platform
+### Shopvibe E-Commerce Platform
 
 Stack: Node.js · Express.js · TypeScript · PostgreSQL · Prisma · Redis · JWT · Cloudinary · Razorpay/Stripe · Nodemailer · Docker · Vercel (frontend) · Railway/Render (backend)
 
