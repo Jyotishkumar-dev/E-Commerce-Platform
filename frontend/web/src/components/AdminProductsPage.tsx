@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAdminProducts, useAdminCategories } from '../hooks/useAdmin';
-import { formatMoney, getOrderStatusColor, formatOrderStatus } from '../hooks/useAdmin';
+import { formatMoney } from '../hooks/useAdmin';
 import { ImagePlaceholder } from './ImagePlaceholder';
 
 interface AdminProductsPageProps {

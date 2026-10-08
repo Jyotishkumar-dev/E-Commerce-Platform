@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAdminOrders, useAdminOrderDetails, formatMoney, getOrderStatusColor, formatOrderStatus, getPaymentStatusColor, formatPaymentStatus } from '../hooks/useAdmin';
+import { useAdminOrders, formatMoney, getOrderStatusColor, formatOrderStatus, getPaymentStatusColor, formatPaymentStatus } from '../hooks/useAdmin';
 import { api, type Order, messageOf } from '../lib/api';
 
 interface AdminOrdersPageProps {
@@ -21,7 +21,6 @@ export function AdminOrdersPage({ onBack }: AdminOrdersPageProps) {
   });
 
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [orderError, setOrderError] = useState<string | null>(null);
   const [showStatusDropdown, setShowStatusDropdown] = useState<string | null>(null);
   const [statusUpdateError, setStatusUpdateError] = useState<string | null>(null);
 

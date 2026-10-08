@@ -1,7 +1,6 @@
-import { useAdminDashboard, useAdminOrders } from '../hooks/useAdmin';
+import { useAdminDashboard } from '../hooks/useAdmin';
 import { formatMoney } from '../hooks/useAdmin';
 import { formatOrderStatus, getOrderStatusColor } from '../hooks/useAdmin';
-import { api, type Order } from '../lib/api';
 
 export function AdminDashboard() {
   const { metrics, isLoading, isError, error, refetch } = useAdminDashboard();
