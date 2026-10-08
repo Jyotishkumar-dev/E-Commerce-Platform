@@ -145,7 +145,7 @@ describe('OrderDetailsPage', () => {
   });
 
   it('shows cancel order button for pending orders', () => {
-    const pendingOrder = { ...mockOrder, status: 'PENDING', payment: { ...mockOrder.payment, status: 'PENDING' } };
+    const pendingOrder: Order = { ...mockOrder, status: 'PENDING', payment: { ...mockOrder.payment, status: 'PENDING' } };
     mockUseOrder(pendingOrder);
     mockUseOrders([pendingOrder]);
     mockUsePayments();
