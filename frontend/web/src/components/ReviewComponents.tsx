@@ -87,7 +87,7 @@ interface ReviewCardProps {
     user: { id: string; name: string | null };
   };
   currentUserId?: string | null;
-  onEdit?: (review: any) => void;
+  onEdit?: (review: ReviewCardProps['review']) => void;
   onDelete?: (reviewId: string) => void;
 }
 
@@ -147,7 +147,7 @@ interface ReviewListProps {
     user: { id: string; name: string | null };
   }>;
   currentUserId?: string | null;
-  onEdit?: (review: any) => void;
+  onEdit?: (review: ReviewListProps['reviews'][number]) => void;
   onDelete?: (reviewId: string) => void;
 }
 

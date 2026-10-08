@@ -5,6 +5,7 @@ import { ReactNode } from 'react';
 import { useAddresses } from '../hooks/useAddresses';
 import { useOrders, useOrder } from '../hooks/useOrders';
 import { api } from '../lib/api';
+import type { Address } from '../lib/api';
 
 vi.mock('../lib/api', () => ({
   api: {
@@ -285,7 +286,7 @@ describe('formatMoney', () => {
 });
 
 describe('formatAddress', () => {
-  let formatAddress: (address: any) => string;
+  let formatAddress: (address: Address) => string;
 
   beforeAll(async () => {
     const mod = await import('../hooks/useOrders');

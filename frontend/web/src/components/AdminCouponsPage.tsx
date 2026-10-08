@@ -15,7 +15,6 @@ export function AdminCouponsPage({ onBack }: AdminCouponsPageProps) {
   const [editCode, setEditCode] = useState('');
   const [editValue, setEditValue] = useState(0);
   const [editType, setEditType] = useState<'PERCENTAGE' | 'FIXED'>('PERCENTAGE');
-  const [editDescription, setEditDescription] = useState('');
   const [editIsActive, setEditIsActive] = useState(true);
   const [formError, setFormError] = useState<string | null>(null);
 

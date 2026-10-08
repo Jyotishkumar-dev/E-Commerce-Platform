@@ -26,7 +26,6 @@ export function AddressList({
   const [addingAddress, setAddingAddress] = useState(false);
 
   const addresses = propAddresses ?? hookAddresses;
-  const loading = propAddresses ? false : isLoading;
 
   const handleEdit = (address: Address) => {
     setEditingAddress(address);

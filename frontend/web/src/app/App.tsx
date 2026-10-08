@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { api, messageOf, Order, Product, User } from '../lib/api';
+import { api, messageOf, Order, Product } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../hooks/useCart';
 import { useWishlist } from '../hooks/useWishlist';
@@ -8,7 +8,6 @@ import { useCatalogParams } from '../hooks/useCatalogParams';
 import { CatalogFilters } from '../components/CatalogFilters';
 import { ProductGrid } from '../components/ProductGrid';
 import { ProductDetailModal } from '../components/ProductDetailModal';
-import { formatMoney } from '../components/ProductCard';
 import { CartDrawer } from '../components/CartDrawer';
 import { CartPage } from '../components/CartPage';
 import { WishlistPage } from '../components/WishlistPage';
@@ -17,7 +16,6 @@ import { OrderConfirmationPage } from '../components/OrderConfirmationPage';
 import { OrderDetailsPage } from '../components/OrderDetailsPage';
 import { OrderHistoryPage } from '../components/OrderHistoryPage';
 import { AddressList } from '../components/AddressList';
-import { AddressForm } from '../components/AddressForm';
 import { ShopvibeLogo } from '../components/ShopvibeLogo';
 import { AdminSidebar } from '../components/AdminSidebar';
 import { ProductCreatePage } from '../components/ProductCreatePage';
@@ -256,7 +254,7 @@ export function App() {
 
       {page.startsWith('admin') && user?.role === 'ADMIN' && (
         <div className="admin-layout">
-          <AdminSidebar currentPage={page} onNavigate={(p) => setPage(p as any)} />
+          <AdminSidebar currentPage={page} onNavigate={setPage} />
           <div>
 
       {page === 'shop' && (

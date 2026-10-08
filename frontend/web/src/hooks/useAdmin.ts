@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import { api, type Order, type Product, type Category, type User, type Coupon, messageOf } from '../lib/api';
+import { api, type Order, type Product, type Category, type User, type Coupon, type Pagination, messageOf } from '../lib/api';
 import { formatMoney } from './useOrders';
 
 export interface AnalyticsData {
@@ -776,7 +776,7 @@ export function useAdminReviews(filters?: {
     isError,
     error,
     refetch,
-  } = useQuery<{ reviews: AdminReview[]; pagination: any }>({
+  } = useQuery<{ reviews: AdminReview[]; pagination: Pagination }>({
     queryKey: ['admin', 'reviews', filters],
     queryFn: async () => {
       const params = new URLSearchParams();
