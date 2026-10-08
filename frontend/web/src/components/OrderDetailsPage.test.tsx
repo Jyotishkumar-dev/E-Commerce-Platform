@@ -5,12 +5,17 @@ import { ReactNode } from 'react';
 import { OrderDetailsPage } from './OrderDetailsPage';
 import { useOrders, useOrder, formatAddress, formatMoney } from '../hooks/useOrders';
 import { usePayments } from '../hooks/usePayments';
+import type { Order } from '../lib/api';
 
 vi.mock('../hooks/useOrders');
 vi.mock('../hooks/usePayments');
 vi.mock('../lib/api', () => ({
-  messageOf: vi.fn((e: any) => (e instanceof Error ? e.message : 'Error')),
+  messageOf: vi.fn((e: unknown) => (e instanceof Error ? e.message : 'Error')),
 }));
+
+type UseOrderReturn = ReturnType<typeof useOrder>;
+type UseOrdersReturn = ReturnType<typeof useOrders>;
+type UsePaymentsReturn = ReturnType<typeof usePayments>;
 
 beforeEach(() => {
   vi.mocked(formatAddress).mockReturnValue('123 Test St, Mumbai, Maharashtra 400001, India');
@@ -26,7 +31,7 @@ const createWrapper = () => {
   );
 };
 
-const mockOrder = {
+const mockOrder: Order = {
   id: 'ord_1',
   status: 'CONFIRMED',
   totalCents: 150000,
@@ -34,15 +39,19 @@ const mockOrder = {
   discountCents: 0,
   shippingFeeCents: 0,
   taxCents: 0,
-  createdAt: new Date('2024-06-15T10:30:00'),
+  createdAt: '2024-06-15T10:30:00.000Z',
   shippingAddressSnapshot: {
     fullName: 'Test User',
     phone: '+919876543210',
     addressLine1: '123 Test St',
+    addressLine2: null,
     city: 'Mumbai',
     state: 'Maharashtra',
     postalCode: '400001',
     country: 'India',
+    isDefault: false,
+    createdAt: '2024-06-15T10:30:00.000Z',
+    updatedAt: '2024-06-15T10:30:00.000Z',
   },
   items: [
     {
@@ -63,8 +72,8 @@ const mockOrder = {
     amountCents: 150000,
     currency: 'INR',
     status: 'SUCCESS',
-    createdAt: new Date('2024-06-15'),
-    updatedAt: new Date('2024-06-15'),
+    createdAt: '2024-06-15T10:30:00.000Z',
+    updatedAt: '2024-06-15T10:30:00.000Z',
   },
 };
 
@@ -73,10 +82,34 @@ describe('OrderDetailsPage', () => {
     vi.clearAllMocks();
   });
 
+  const mockUseOrder = (order: Order | null, isLoading = false, isError = false, error: string | null = null) => {
+    vi.mocked(useOrder).mockReturnValue({ order, isLoading, isError, error, refetch: vi.fn() } as UseOrderReturn);
+  };
+
+  const mockUseOrders = (orders: Order[], cancelOrder = vi.fn(), isCancelling = false) => {
+    vi.mocked(useOrders).mockReturnValue({ orders, cancelOrder, isCancelling, isLoading: false, isError: false, error: null, refetch: vi.fn(), createOrder: vi.fn(), isCreating: false } as UseOrdersReturn);
+  };
+
+  const mockUsePayments = (overrides: Partial<UsePaymentsReturn> = {}) => {
+    vi.mocked(usePayments).mockReturnValue({
+      retryPayment: vi.fn(),
+      cancelPayment: vi.fn(),
+      refundPayment: vi.fn(),
+      isRetrying: false,
+      isCancelling: false,
+      isRefunding: false,
+      createPaymentOrder: vi.fn(),
+      verifyPayment: vi.fn(),
+      isCreating: false,
+      isVerifying: false,
+      ...overrides,
+    } as UsePaymentsReturn);
+  };
+
   it('renders order details with items', () => {
-    vi.mocked(useOrder).mockReturnValue({ order: mockOrder, isLoading: false, isError: false, error: null, refetch: vi.fn() } as any);
-    vi.mocked(useOrders).mockReturnValue({ orders: [mockOrder], cancelOrder: vi.fn(), isCancelling: false } as any);
-    vi.mocked(usePayments).mockReturnValue({ retryPayment: vi.fn(), cancelPayment: vi.fn(), refundPayment: vi.fn(), isRetrying: false, isCancelling: false, isRefunding: false } as any);
+    mockUseOrder(mockOrder);
+    mockUseOrders([mockOrder]);
+    mockUsePayments();
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
     expect(screen.getByText(/Order #ORD_1/)).toBeInTheDocument();
     expect(screen.getByText('Test Product')).toBeInTheDocument();
@@ -84,43 +117,43 @@ describe('OrderDetailsPage', () => {
   });
 
   it('shows delivery address', () => {
-    vi.mocked(useOrder).mockReturnValue({ order: mockOrder, isLoading: false, isError: false, error: null, refetch: vi.fn() } as any);
-    vi.mocked(useOrders).mockReturnValue({ orders: [mockOrder], cancelOrder: vi.fn(), isCancelling: false } as any);
-    vi.mocked(usePayments).mockReturnValue({ retryPayment: vi.fn(), cancelPayment: vi.fn(), refundPayment: vi.fn(), isRetrying: false, isCancelling: false, isRefunding: false } as any);
+    mockUseOrder(mockOrder);
+    mockUseOrders([mockOrder]);
+    mockUsePayments();
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
     expect(screen.getByText('123 Test St')).toBeInTheDocument();
     expect(screen.getByText('Mumbai')).toBeInTheDocument();
   });
 
   it('shows order status badge', () => {
-    vi.mocked(useOrder).mockReturnValue({ order: mockOrder, isLoading: false, isError: false, error: null, refetch: vi.fn() } as any);
-    vi.mocked(useOrders).mockReturnValue({ orders: [mockOrder], cancelOrder: vi.fn(), isCancelling: false } as any);
-    vi.mocked(usePayments).mockReturnValue({ retryPayment: vi.fn(), cancelPayment: vi.fn(), refundPayment: vi.fn(), isRetrying: false, isCancelling: false, isRefunding: false } as any);
+    mockUseOrder(mockOrder);
+    mockUseOrders([mockOrder]);
+    mockUsePayments();
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
     expect(screen.getByText('Confirmed')).toBeInTheDocument();
   });
 
   it('shows refund button for paid orders', () => {
-    vi.mocked(useOrder).mockReturnValue({ order: mockOrder, isLoading: false, isError: false, error: null, refetch: vi.fn() } as any);
-    vi.mocked(useOrders).mockReturnValue({ orders: [mockOrder], cancelOrder: vi.fn(), isCancelling: false } as any);
-    vi.mocked(usePayments).mockReturnValue({ retryPayment: vi.fn(), cancelPayment: vi.fn(), refundPayment: vi.fn(), isRetrying: false, isCancelling: false, isRefunding: false } as any);
+    mockUseOrder(mockOrder);
+    mockUseOrders([mockOrder]);
+    mockUsePayments();
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
     expect(screen.getByRole('button', { name: 'Request Refund' })).toBeInTheDocument();
   });
 
   it('shows cancel order button for pending orders', () => {
     const pendingOrder = { ...mockOrder, status: 'PENDING', payment: { ...mockOrder.payment, status: 'PENDING' } };
-    vi.mocked(useOrder).mockReturnValue({ order: pendingOrder, isLoading: false, isError: false, error: null, refetch: vi.fn() } as any);
-    vi.mocked(useOrders).mockReturnValue({ orders: [pendingOrder], cancelOrder: vi.fn(), isCancelling: false } as any);
-    vi.mocked(usePayments).mockReturnValue({ retryPayment: vi.fn(), cancelPayment: vi.fn(), refundPayment: vi.fn(), isRetrying: false, isCancelling: false, isRefunding: false } as any);
+    mockUseOrder(pendingOrder);
+    mockUseOrders([pendingOrder]);
+    mockUsePayments();
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
     expect(screen.getByRole('button', { name: 'Cancel Order' })).toBeInTheDocument();
   });
 
   it('shows order progress timeline', () => {
-    vi.mocked(useOrder).mockReturnValue({ order: mockOrder, isLoading: false, isError: false, error: null, refetch: vi.fn() } as any);
-    vi.mocked(useOrders).mockReturnValue({ orders: [mockOrder], cancelOrder: vi.fn(), isCancelling: false } as any);
-    vi.mocked(usePayments).mockReturnValue({ retryPayment: vi.fn(), cancelPayment: vi.fn(), refundPayment: vi.fn(), isRetrying: false, isCancelling: false, isRefunding: false } as any);
+    mockUseOrder(mockOrder);
+    mockUseOrders([mockOrder]);
+    mockUsePayments();
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
     expect(screen.getByText('Order Placed')).toBeInTheDocument();
     expect(screen.getByText('Confirmed')).toBeInTheDocument();
@@ -128,13 +161,13 @@ describe('OrderDetailsPage', () => {
   });
 
   it('shows loading spinner', () => {
-    vi.mocked(useOrder).mockReturnValue({ order: null, isLoading: true, isError: false, error: null, refetch: vi.fn() } as any);
+    mockUseOrder(null, true);
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
     expect(screen.getByText('Loading order details…')).toBeInTheDocument();
   });
 
   it('shows error state when order not found', () => {
-    vi.mocked(useOrder).mockReturnValue({ order: null, isLoading: false, isError: true, error: 'Order not found: invalid ID', refetch: vi.fn() } as any);
+    mockUseOrder(null, false, true, 'Order not found: invalid ID');
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
     expect(screen.getByText('Order not found: invalid ID')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Back to Orders/ })).toBeInTheDocument();
@@ -143,9 +176,9 @@ describe('OrderDetailsPage', () => {
   it('confirms order cancellation', async () => {
     const cancelOrder = vi.fn().mockResolvedValue(undefined);
     const pendingOrder = { ...mockOrder, status: 'PENDING', payment: { ...mockOrder.payment, status: 'PENDING' } };
-    vi.mocked(useOrder).mockReturnValue({ order: pendingOrder, isLoading: false, isError: false, error: null, refetch: vi.fn() } as any);
-    vi.mocked(useOrders).mockReturnValue({ orders: [pendingOrder], cancelOrder, isCancelling: false } as any);
-    vi.mocked(usePayments).mockReturnValue({ retryPayment: vi.fn(), cancelPayment: vi.fn(), refundPayment: vi.fn(), isRetrying: false, isCancelling: false, isRefunding: false } as any);
+    mockUseOrder(pendingOrder);
+    mockUseOrders([pendingOrder], cancelOrder);
+    mockUsePayments();
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
     const buttons = screen.getAllByRole('button', { name: 'Cancel Order' });
     fireEvent.click(buttons[0]);
@@ -157,13 +190,13 @@ describe('OrderDetailsPage', () => {
 
   it('confirms refund request', async () => {
     const refundPayment = vi.fn().mockResolvedValue(undefined);
-    vi.mocked(useOrder).mockReturnValue({ order: mockOrder, isLoading: false, isError: false, error: null, refetch: vi.fn() } as any);
-    vi.mocked(useOrders).mockReturnValue({ orders: [mockOrder], cancelOrder: vi.fn(), isCancelling: false } as any);
-    vi.mocked(usePayments).mockReturnValue({ retryPayment: vi.fn(), cancelPayment: vi.fn(), refundPayment, isRefunding: false, isCancelling: false } as any);
+    mockUseOrder(mockOrder);
+    mockUseOrders([mockOrder]);
+    mockUsePayments({ refundPayment });
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
-    const buttons = screen.getAllByRole('button', { name: 'Request Refund' } as any);
+    const buttons = screen.getAllByRole('button', { name: 'Request Refund' });
     fireEvent.click(buttons[0]);
-    const refundButtons = screen.getAllByRole('button', { name: 'Request Refund' } as any);
+    const refundButtons = screen.getAllByRole('button', { name: 'Request Refund' });
     fireEvent.click(refundButtons[1]);
     await waitFor(() => expect(screen.getByText('Refund processed successfully.')).toBeInTheDocument());
     expect(refundPayment).toHaveBeenCalledWith('ord_1');
@@ -171,18 +204,18 @@ describe('OrderDetailsPage', () => {
 
   it('shows cancel button for PENDING COD orders', () => {
     const pendingOrder = { ...mockOrder, status: 'PENDING', payment: { ...mockOrder.payment, status: 'PENDING', provider: 'COD' } };
-    vi.mocked(useOrder).mockReturnValue({ order: pendingOrder, isLoading: false, isError: false, error: null, refetch: vi.fn() } as any);
-    vi.mocked(useOrders).mockReturnValue({ orders: [pendingOrder], cancelOrder: vi.fn(), isCancelling: false } as any);
-    vi.mocked(usePayments).mockReturnValue({ retryPayment: vi.fn(), cancelPayment: vi.fn(), refundPayment: vi.fn(), isRetrying: false, isCancelling: false, isRefunding: false } as any);
+    mockUseOrder(pendingOrder);
+    mockUseOrders([pendingOrder]);
+    mockUsePayments();
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
     expect(screen.getByRole('button', { name: 'Cancel Order' })).toBeInTheDocument();
   });
 
   it('does not show cancel for SHIPPED orders', () => {
     const shippedOrder = { ...mockOrder, status: 'SHIPPED' };
-    vi.mocked(useOrder).mockReturnValue({ order: shippedOrder, isLoading: false, isError: false, error: null, refetch: vi.fn() } as any);
-    vi.mocked(useOrders).mockReturnValue({ orders: [shippedOrder], cancelOrder: vi.fn(), isCancelling: false } as any);
-    vi.mocked(usePayments).mockReturnValue({ retryPayment: vi.fn(), cancelPayment: vi.fn(), refundPayment: vi.fn(), isRetrying: false, isCancelling: false, isRefunding: false } as any);
+    mockUseOrder(shippedOrder);
+    mockUseOrders([shippedOrder]);
+    mockUsePayments();
     render(<OrderDetailsPage orderId="ord_1" onBack={vi.fn()} />, { wrapper: createWrapper() });
     expect(screen.queryByRole('button', { name: 'Cancel Order' })).not.toBeInTheDocument();
   });

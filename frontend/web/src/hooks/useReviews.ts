@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
-import { api, messageOf, type ProductReview } from '../lib/api';
+import { api, messageOf, type ProductReview, type Pagination } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 
 export function useProductReviews(productId: string | null, options?: { sort?: 'newest' | 'highest_rated' | 'lowest_rated'; page?: number; limit?: number }) {
@@ -10,7 +9,7 @@ export function useProductReviews(productId: string | null, options?: { sort?: '
     isError,
     error,
     refetch,
-  } = useQuery<{ reviews: ProductReview[]; pagination: any }>({
+  } = useQuery<{ reviews: ProductReview[]; pagination: Pagination }>({
     queryKey: ['reviews', productId, options?.sort, options?.page, options?.limit],
     queryFn: async () => {
       if (!productId) throw new Error('Product ID required');

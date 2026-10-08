@@ -5,12 +5,16 @@ import { ReactNode } from 'react';
 import { OrderHistoryPage } from './OrderHistoryPage';
 import { useOrders, formatMoney, formatOrderStatus, getOrderStatusColor } from '../hooks/useOrders';
 import { usePayments } from '../hooks/usePayments';
+import type { Order } from '../lib/api';
 
 vi.mock('../hooks/useOrders');
 vi.mock('../hooks/usePayments');
 vi.mock('../lib/api', () => ({
-  messageOf: vi.fn((e: any) => (e instanceof Error ? e.message : 'Error')),
+  messageOf: vi.fn((e: unknown) => (e instanceof Error ? e.message : 'Error')),
 }));
+
+type UseOrdersReturn = ReturnType<typeof useOrders>;
+type UsePaymentsReturn = ReturnType<typeof usePayments>;
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -21,7 +25,7 @@ const createWrapper = () => {
   );
 };
 
-const mockOrders = [
+const mockOrders: Order[] = [
   {
     id: 'ord_1',
     status: 'DELIVERED',
@@ -30,9 +34,9 @@ const mockOrders = [
     discountCents: 0,
     shippingFeeCents: 0,
     taxCents: 0,
-    createdAt: new Date('2024-06-15'),
+    createdAt: '2024-06-15T00:00:00.000Z',
     items: [{ id: 'item_1', productTitle: 'Test Product', quantity: 1, unitPriceCents: 150000, subtotalCents: 150000 }],
-    payment: { id: 'pay_1', provider: 'COD', status: 'SUCCESS', amountCents: 150000 },
+    payment: { id: 'pay_1', provider: 'COD', status: 'SUCCESS', amountCents: 150000, currency: 'INR', providerOrderId: null, providerPaymentId: null, createdAt: '2024-06-15T00:00:00.000Z', updatedAt: '2024-06-15T00:00:00.000Z' },
   },
   {
     id: 'ord_2',
@@ -42,35 +46,55 @@ const mockOrders = [
     discountCents: 0,
     shippingFeeCents: 0,
     taxCents: 0,
-    createdAt: new Date('2024-06-14'),
+    createdAt: '2024-06-14T00:00:00.000Z',
     items: [
       { id: 'item_2', productTitle: 'Product A', quantity: 1, unitPriceCents: 100000, subtotalCents: 100000 },
       { id: 'item_3', productTitle: 'Product B', quantity: 3, unitPriceCents: 50000, subtotalCents: 150000 },
     ],
-    payment: { id: 'pay_2', provider: 'RAZORPAY', status: 'PENDING', amountCents: 250000 },
+    payment: { id: 'pay_2', provider: 'RAZORPAY', status: 'PENDING', amountCents: 250000, currency: 'INR', providerOrderId: null, providerPaymentId: null, createdAt: '2024-06-14T00:00:00.000Z', updatedAt: '2024-06-14T00:00:00.000Z' },
   },
 ];
 
 describe('OrderHistoryPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useOrders as any).mockReturnValue({
-      orders: mockOrders,
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: vi.fn(),
-      cancelOrder: vi.fn(),
-      isCancelling: false,
-    });
-    (usePayments as any).mockReturnValue({
-      refundPayment: vi.fn(),
-      isRefunding: false,
-    });
+    mockUseOrders(mockOrders);
+    mockUsePayments();
     vi.mocked(formatMoney).mockImplementation((cents: number | null | undefined) => `₹${((cents ?? 0) / 100).toLocaleString('en-IN')}`);
     vi.mocked(formatOrderStatus).mockImplementation((status: string) => status.charAt(0) + status.slice(1).toLowerCase().replace(/_/g, ' '));
     vi.mocked(getOrderStatusColor).mockImplementation((status: string) => `status-${status.toLowerCase()}`);
   });
+
+  const mockUseOrders = (orders: Order[], cancelOrder = vi.fn(), isCancelling = false, overrides: Partial<UseOrdersReturn> = {}) => {
+    vi.mocked(useOrders).mockReturnValue({
+      orders,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+      cancelOrder,
+      isCancelling,
+      createOrder: vi.fn(),
+      isCreating: false,
+      ...overrides,
+    } as UseOrdersReturn);
+  };
+
+  const mockUsePayments = (overrides: Partial<UsePaymentsReturn> = {}) => {
+    vi.mocked(usePayments).mockReturnValue({
+      refundPayment: vi.fn(),
+      isRefunding: false,
+      createPaymentOrder: vi.fn(),
+      verifyPayment: vi.fn(),
+      retryPayment: vi.fn(),
+      cancelPayment: vi.fn(),
+      isCreating: false,
+      isVerifying: false,
+      isRetrying: false,
+      isCancelling: false,
+      ...overrides,
+    } as UsePaymentsReturn);
+  };
 
   it('renders order history table with all orders', () => {
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
@@ -103,15 +127,7 @@ describe('OrderHistoryPage', () => {
   });
 
   it('does not show cancel button for delivered orders', () => {
-    (useOrders as any).mockReturnValue({
-      orders: [mockOrders[0]],
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: vi.fn(),
-      cancelOrder: vi.fn(),
-      isCancelling: false,
-    });
+    mockUseOrders([mockOrders[0]]);
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
     expect(screen.queryByRole('button', { name: 'Cancel' })).not.toBeInTheDocument();
   });
@@ -123,15 +139,7 @@ describe('OrderHistoryPage', () => {
 
   it('calls cancelOrder when cancel confirmed', async () => {
     const cancelOrder = vi.fn().mockResolvedValue(undefined);
-    (useOrders as any).mockReturnValue({
-      orders: mockOrders,
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: vi.fn(),
-      cancelOrder,
-      isCancelling: false,
-    });
+    mockUseOrders(mockOrders, cancelOrder);
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.getByText('Are you sure you want to cancel this order?')).toBeInTheDocument();
@@ -141,7 +149,7 @@ describe('OrderHistoryPage', () => {
 
   it('calls refundPayment when refund confirmed', async () => {
     const refundPayment = vi.fn().mockResolvedValue(undefined);
-    (usePayments as any).mockReturnValue({ refundPayment, isRefunding: false });
+    mockUsePayments({ refundPayment });
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
     fireEvent.click(screen.getByRole('button', { name: 'Refund' }));
     fireEvent.click(screen.getByRole('button', { name: 'Request Refund' }));
@@ -149,43 +157,19 @@ describe('OrderHistoryPage', () => {
   });
 
   it('shows loading state initially', () => {
-    (useOrders as any).mockReturnValue({
-      orders: [],
-      isLoading: true,
-      isError: false,
-      error: null,
-      refetch: vi.fn(),
-      cancelOrder: vi.fn(),
-      isCancelling: false,
-    });
+    mockUseOrders([], vi.fn(), false, { isLoading: true });
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
     expect(screen.getByText('Loading orders…')).toBeInTheDocument();
   });
 
   it('shows empty state when no orders', () => {
-    (useOrders as any).mockReturnValue({
-      orders: [],
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: vi.fn(),
-      cancelOrder: vi.fn(),
-      isCancelling: false,
-    });
+    mockUseOrders([]);
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
     expect(screen.getByText('No orders yet')).toBeInTheDocument();
   });
 
   it('shows error state with retry', () => {
-    (useOrders as any).mockReturnValue({
-      orders: [],
-      isLoading: false,
-      isError: true,
-      error: 'CONNECTION_TIMEOUT',
-      refetch: vi.fn(),
-      cancelOrder: vi.fn(),
-      isCancelling: false,
-    });
+    mockUseOrders([], vi.fn(), false, { isError: true, error: 'CONNECTION_TIMEOUT' });
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
     expect(screen.getAllByText(/CONNECTION_TIMEOUT/).length).toBeGreaterThan(0);
     expect(screen.getAllByRole('button', { name: 'Retry' }).length).toBeGreaterThan(0);
@@ -193,15 +177,7 @@ describe('OrderHistoryPage', () => {
 
   it('shows dismiss for cancel/refund errors', async () => {
     const cancelOrder = vi.fn().mockRejectedValue(new Error('Cannot cancel'));
-    (useOrders as any).mockReturnValue({
-      orders: mockOrders,
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: vi.fn(),
-      cancelOrder,
-      isCancelling: false,
-    });
+    mockUseOrders(mockOrders, cancelOrder);
     render(<OrderHistoryPage />, { wrapper: createWrapper() });
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel Order' }));

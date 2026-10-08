@@ -11,8 +11,9 @@ vi.mock('../lib/mediaConfig', () => ({
 }));
 
 beforeEach(() => {
+  const originalURL = globalThis.URL;
   vi.stubGlobal('URL', {
-    ...(globalThis as any).URL,
+    ...originalURL,
     createObjectURL: vi.fn(() => 'blob:mock-url'),
     revokeObjectURL: vi.fn(),
   });

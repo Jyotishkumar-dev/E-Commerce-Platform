@@ -1,7 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
-import { api, messageOf, type WishlistItem } from '../lib/api';
+import { api, messageOf, type WishlistItem, type Product } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+
+type OptimisticProduct = Pick<Product, 'id' | 'title' | 'priceCents' | 'images' | 'stock' | 'category' | 'currency' | 'isActive'> & {
+  description: null;
+  compareAtPriceCents: null;
+  imageUrl: null;
+  slug?: string;
+  brand?: string | null;
+  sku?: string | null;
+  seller?: { name: string | null };
+  reviewSummary?: never;
+};
 
 export function useWishlist() {
   const queryClient = useQueryClient();
@@ -51,11 +62,24 @@ export function useWishlist() {
         );
       } else {
         // Optimistically add item with minimal product data
+        const optimisticProduct: OptimisticProduct = {
+          id: productId,
+          title: '',
+          priceCents: 0,
+          images: [],
+          stock: 0,
+          category: '',
+          currency: 'INR',
+          isActive: true,
+          description: null,
+          compareAtPriceCents: null,
+          imageUrl: null,
+        };
         nextItems = [
           {
             id: `temp_${productId}`,
             productId,
-            product: { id: productId, title: '', priceCents: 0, images: [], stock: 0, category: '', currency: 'INR', isActive: true } as any,
+            product: optimisticProduct,
             createdAt: new Date().toISOString(),
           },
           ...previousItems,

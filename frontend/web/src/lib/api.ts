@@ -177,6 +177,13 @@ export type Coupon = {
   updatedAt: string;
 };
 
+export type Pagination = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
 export function setAccessToken(token?: string) {
   if (token) {
     api.defaults.headers.common.Authorization = `Bearer ${token}`;
