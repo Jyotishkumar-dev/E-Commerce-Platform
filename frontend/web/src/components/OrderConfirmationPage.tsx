@@ -24,7 +24,7 @@ function getPaymentStatusLabel(status: string): string {
 }
 
 export function OrderConfirmationPage({ orderId, onContinueShopping, onViewOrder }: OrderConfirmationPageProps) {
-  const { order, isLoading, isError, error, refetch } = useOrder(orderId);
+  const { order, isLoading, isError, error } = useOrder(orderId);
 
   if (isLoading) {
     return (

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useCart } from '../hooks/useCart';
 import { useAddresses, useDefaultAddress } from '../hooks/useAddresses';
 import { useOrders } from '../hooks/useOrders';
@@ -6,7 +6,7 @@ import { usePayments } from '../hooks/usePayments';
 import { AddressForm } from './AddressForm';
 import { AddressList } from './AddressList';
 import { formatMoney } from './ProductCard';
-import type { CartItem, Address, Order } from '../lib/api';
+import type { Address, Order } from '../lib/api';
 
 interface CheckoutPageProps {
   onClose?: () => void;
@@ -54,7 +54,7 @@ interface RazorpayInstance {
 
 export function CheckoutPage({ onClose, onOrderComplete }: CheckoutPageProps) {
   const { items, itemCount, subtotalCents, hasUnavailableItems, refetch: refetchCart } = useCart();
-  const { addresses, isLoading: addressesLoading, refetch: refetchAddresses, createAddress } = useAddresses();
+  const { addresses, refetch: refetchAddresses, createAddress } = useAddresses();
   const defaultAddress = useDefaultAddress();
   const { createOrder } = useOrders();
   const { createPaymentOrder, verifyPayment, isCreating: isCreatingPayment, isVerifying } = usePayments();
@@ -65,7 +65,6 @@ export function CheckoutPage({ onClose, onOrderComplete }: CheckoutPageProps) {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId) ?? null;
 
@@ -172,15 +171,6 @@ export function CheckoutPage({ onClose, onOrderComplete }: CheckoutPageProps) {
       setSelectedAddressId(newAddress.id);
     } else {
       await refetchAddresses();
-    }
-  };
-
-  const handleCreateAddress = async (addressData: Omit<Address, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      const newAddress = await createAddress(addressData);
-      handleAddressSaved(newAddress);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to create address.');
     }
   };
 

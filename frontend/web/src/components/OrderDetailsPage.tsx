@@ -93,17 +93,6 @@ export function OrderDetailsPage({ orderId, onBack }: OrderDetailsPageProps) {
     setShowRetryConfirm(false);
   };
 
-  const handleCancelPayment = async () => {
-    try {
-      await cancelPayment(orderId);
-      void refetch();
-      setSuccessMsg('Payment cancelled. Your order has been cancelled.');
-    } catch (e) {
-      setFormError(messageOf(e));
-    }
-    setShowCancelConfirm(false);
-  };
-
   const handleCancelOrder = async () => {
     setShowCancelConfirm(false);
     setFormError(null);
