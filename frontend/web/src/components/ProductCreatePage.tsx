@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAdminProductCreate } from '../hooks/useAdmin';
 import { useAdminCategories } from '../hooks/useAdmin';
+import { useAdminUploadProductImage } from '../hooks/useAdmin';
 import { ProductMediaManager } from './ProductMediaManager';
 import type { ProductImage } from '../lib/api';
 
