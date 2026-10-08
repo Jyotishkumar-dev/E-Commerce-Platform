@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import { ImagePlaceholder } from './ImagePlaceholder';
 
 interface ProductImageGalleryProps {
@@ -18,7 +19,7 @@ export function ProductImageGallery({ images, fallbackUrl, onImageClick }: Produ
 
   const mainImage = allImages[selectedIndex] ?? null;
 
-  const handleThumbnailClick = (e: MouseEvent, index: number) => {
+  const handleThumbnailClick = (e: ReactMouseEvent<HTMLButtonElement>, index: number) => {
     e.stopPropagation();
     setSelectedIndex(index);
   };

@@ -44,7 +44,7 @@ export function AdminOrdersPage({ onBack }: AdminOrdersPageProps) {
     try {
       const { data } = await api.get(`/admin/orders/${orderId}`);
       setSelectedOrder(data?.data?.order);
-    } catch (e) {
+    } catch {
       // Error handled by mutation
     }
   };

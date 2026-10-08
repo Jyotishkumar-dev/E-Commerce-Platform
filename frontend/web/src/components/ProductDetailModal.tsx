@@ -299,7 +299,7 @@ export function ProductDetailModal({
       {/* Reviews Section (below modal) */}
       {product.id && (
         <div className="product-detail-reviews-section">
-          <ReviewSummary summary={summary ?? null} productTitle={product.title} />
+          <ReviewSummary summary={summary ?? null} />
 
           <div className="reviews-header">
             <h3>Customer Reviews</h3>

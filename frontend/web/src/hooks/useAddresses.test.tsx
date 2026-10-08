@@ -294,7 +294,9 @@ describe('formatAddress', () => {
   });
 
   it('formats address parts correctly', () => {
-    const address = {
+    const address: Address = {
+      id: 'addr_1',
+      userId: 'usr_1',
       fullName: 'Test User',
       phone: '+919876543210',
       addressLine1: '123 Test St',
@@ -303,6 +305,9 @@ describe('formatAddress', () => {
       state: 'Maharashtra',
       postalCode: '400001',
       country: 'India',
+      isDefault: false,
+      createdAt: '2024-06-15T10:30:00.000Z',
+      updatedAt: '2024-06-15T10:30:00.000Z',
     };
     const formatted = formatAddress(address);
     expect(formatted).toContain('Test User');
@@ -314,21 +319,27 @@ describe('formatAddress', () => {
   });
 
   it('handles missing optional fields', () => {
-    const address = {
+    const address: Address = {
+      id: 'addr_1',
+      userId: 'usr_1',
       fullName: 'Test User',
       phone: '+919876543210',
       addressLine1: '123 Test St',
+      addressLine2: null,
       city: 'Mumbai',
       state: 'Maharashtra',
       postalCode: '400001',
       country: 'India',
+      isDefault: false,
+      createdAt: '2024-06-15T10:30:00.000Z',
+      updatedAt: '2024-06-15T10:30:00.000Z',
     };
     const formatted = formatAddress(address);
     expect(formatted).not.toContain('undefined');
   });
 
   it('returns fallback for null address', () => {
-    expect(formatAddress(null)).toBe('No address available');
-    expect(formatAddress(undefined)).toBe('No address available');
+    expect(formatAddress(null as unknown as Address)).toBe('No address available');
+    expect(formatAddress(undefined as unknown as Address)).toBe('No address available');
   });
 });

@@ -145,7 +145,7 @@ describe('OrderDetailsPage', () => {
   });
 
   it('shows cancel order button for pending orders', () => {
-    const pendingOrder: Order = { ...mockOrder, status: 'PENDING', payment: { ...mockOrder.payment, status: 'PENDING' } };
+    const pendingOrder: Order = { ...mockOrder, status: 'PENDING', payment: { ...mockOrder.payment!, status: 'PENDING' } };
     mockUseOrder(pendingOrder);
     mockUseOrders([pendingOrder]);
     mockUsePayments();
@@ -178,7 +178,7 @@ describe('OrderDetailsPage', () => {
 
   it('confirms order cancellation', async () => {
     const cancelOrder = vi.fn().mockResolvedValue(undefined);
-    const pendingOrder: Order = { ...mockOrder, status: 'PENDING', payment: { ...mockOrder.payment, status: 'PENDING' } };
+    const pendingOrder: Order = { ...mockOrder, status: 'PENDING', payment: { ...mockOrder.payment!, status: 'PENDING' } };
     mockUseOrder(pendingOrder);
     mockUseOrders([pendingOrder], cancelOrder);
     mockUsePayments();
@@ -206,7 +206,7 @@ describe('OrderDetailsPage', () => {
   });
 
   it('shows cancel button for PENDING COD orders', () => {
-    const pendingOrder: Order = { ...mockOrder, status: 'PENDING', payment: { ...mockOrder.payment, status: 'PENDING', provider: 'COD' } };
+    const pendingOrder: Order = { ...mockOrder, status: 'PENDING', payment: { ...mockOrder.payment!, status: 'PENDING', provider: 'COD' } };
     mockUseOrder(pendingOrder);
     mockUseOrders([pendingOrder]);
     mockUsePayments();

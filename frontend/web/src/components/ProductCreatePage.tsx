@@ -12,6 +12,7 @@ interface ProductCreatePageProps {
 
 export function ProductCreatePage({ onBack }: ProductCreatePageProps) {
   const { createProduct, isCreating } = useAdminProductCreate();
+  const { isUploading } = useAdminUploadProductImage(null);
   const { categories } = useAdminCategories();
 
   const [form, setForm] = useState({
